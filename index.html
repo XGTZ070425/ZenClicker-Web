@@ -1,0 +1,1870 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>ZenClicker - 禅意点击器</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<style>
+/* ================================================================
+   CSS Variables & Themes
+   ================================================================ */
+:root {
+  --accent: #1f6aa5;
+  --accent-rgb: 31,106,165;
+  --bg-primary: #0f0f13;
+  --bg-secondary: #1a1a22;
+  --bg-card: #22222e;
+  --bg-card-hover: #2a2a38;
+  --text-primary: #e8e8f0;
+  --text-secondary: #888899;
+  --text-muted: #555566;
+  --border: #2a2a3a;
+  --shadow: 0 8px 32px rgba(0,0,0,0.4);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --radius-xs: 6px;
+  --transition: 0.3s cubic-bezier(0.4,0,0.2,1);
+  --font: 'Segoe UI','PingFang SC','Microsoft YaHei','Noto Sans SC',sans-serif;
+}
+
+/* ================================================================
+   Reset & Base
+   ================================================================ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-tap-highlight-color:transparent;overflow:hidden;height:100%}
+body{font-family:var(--font);background:var(--bg-primary);color:var(--text-primary);
+  height:100%;overflow:hidden;user-select:none;-webkit-user-select:none}
+button{font-family:var(--font);cursor:pointer;border:none;outline:none;background:none;color:inherit}
+input,select,textarea{font-family:var(--font);outline:none;border:none;color:var(--text-primary)}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--text-muted)}
+
+/* ================================================================
+   App Layout
+   ================================================================ */
+#app{display:flex;height:100%;width:100%;position:relative}
+
+/* Sidebar */
+.sidebar{width:220px;background:var(--bg-secondary);display:flex;flex-direction:column;
+  border-right:1px solid var(--border);flex-shrink:0;z-index:10;transition:var(--transition)}
+.sidebar-logo{padding:24px 20px 16px;text-align:center}
+.sidebar-logo .logo-icon{font-size:40px;display:block;margin-bottom:4px}
+.sidebar-logo .logo-text{font-size:18px;font-weight:700;letter-spacing:1px}
+.sidebar-logo .logo-ver{font-size:11px;color:var(--text-muted);margin-top:2px}
+.sidebar-divider{height:1px;background:var(--border);margin:0 16px}
+.sidebar-nav{flex:1;padding:8px 10px;overflow-y:auto}
+.nav-btn{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;
+  border-radius:var(--radius-sm);font-size:14px;color:var(--text-secondary);
+  transition:var(--transition);margin-bottom:2px;text-align:left}
+.nav-btn:hover{background:var(--bg-card);color:var(--text-primary)}
+.nav-btn.active{background:rgba(var(--accent-rgb),0.15);color:var(--accent);font-weight:600}
+.nav-btn .nav-icon{font-size:18px;width:24px;text-align:center}
+.sidebar-footer{padding:12px 16px;border-top:1px solid var(--border);text-align:center}
+.sidebar-footer .badge{font-size:11px;color:var(--text-muted)}
+
+/* Main content */
+.main-content{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative}
+.page-container{flex:1;overflow-y:auto;overflow-x:hidden;padding:24px 28px;
+  scroll-behavior:smooth}
+.page{display:none;animation:fadeIn 0.3s ease}
+.page.active{display:block}
+
+/* Mobile bottom nav */
+.bottom-nav{display:none;background:var(--bg-secondary);border-top:1px solid var(--border);
+  padding:6px 0 env(safe-area-inset-bottom,6px);z-index:10}
+.bottom-nav-inner{display:flex;justify-content:space-around;align-items:center}
+.bnav-btn{display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding:6px 8px;border-radius:8px;font-size:10px;color:var(--text-muted);
+  transition:var(--transition);min-width:52px}
+.bnav-btn .bnav-icon{font-size:20px}
+.bnav-btn.active{color:var(--accent)}
+
+/* ================================================================
+   Common Components
+   ================================================================ */
+.page-title{font-size:26px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:10px}
+.page-subtitle{font-size:13px;color:var(--text-secondary);margin-bottom:20px}
+.card{background:var(--bg-card);border-radius:var(--radius);padding:20px;
+  margin-bottom:16px;border:1px solid var(--border);transition:var(--transition)}
+.card:hover{border-color:rgba(var(--accent-rgb),0.3)}
+.card-title{font-size:15px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:10px 24px;border-radius:var(--radius-sm);font-size:14px;font-weight:600;
+  transition:var(--transition);position:relative;overflow:hidden}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{filter:brightness(1.15);transform:translateY(-1px)}
+.btn-primary:active{transform:scale(0.97)}
+.btn-secondary{background:var(--bg-card);border:1px solid var(--border);color:var(--text-primary)}
+.btn-secondary:hover{background:var(--bg-card-hover);border-color:var(--accent)}
+.btn-danger{background:#c0392b;color:#fff}
+.btn-danger:hover{background:#e74c3c}
+.btn-sm{padding:6px 14px;font-size:12px;border-radius:var(--radius-xs)}
+.btn-lg{padding:16px 40px;font-size:20px;border-radius:24px}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px}
+.stat-card{background:var(--bg-card);border-radius:var(--radius);padding:16px;
+  text-align:center;border:1px solid var(--border)}
+.stat-value{font-size:32px;font-weight:800;color:var(--accent);line-height:1.2}
+.stat-label{font-size:12px;color:var(--text-secondary);margin-top:4px}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:4px 12px;
+  border-radius:20px;font-size:12px;font-weight:500}
+input[type="text"],input[type="number"]{background:var(--bg-primary);border:1px solid var(--border);
+  padding:10px 14px;border-radius:var(--radius-sm);font-size:14px;width:100%;
+  transition:var(--transition)}
+input[type="text"]:focus,input[type="number"]:focus{border-color:var(--accent)}
+select{background:var(--bg-primary);border:1px solid var(--border);padding:10px 14px;
+  border-radius:var(--radius-sm);font-size:14px;width:100%;cursor:pointer;
+  transition:var(--transition);appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center}
+select:focus{border-color:var(--accent)}
+input[type="range"]{-webkit-appearance:none;width:100%;height:6px;border-radius:3px;
+  background:var(--border);outline:none;transition:var(--transition)}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;
+  border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid #fff;
+  box-shadow:0 2px 6px rgba(0,0,0,0.3)}
+.switch{position:relative;width:44px;height:24px;display:inline-block}
+.switch input{opacity:0;width:0;height:0}
+.switch .slider{position:absolute;inset:0;background:var(--border);border-radius:12px;
+  cursor:pointer;transition:var(--transition)}
+.switch .slider::before{content:'';position:absolute;width:18px;height:18px;
+  border-radius:50%;background:#fff;left:3px;top:3px;transition:var(--transition)}
+.switch input:checked+.slider{background:var(--accent)}
+.switch input:checked+.slider::before{transform:translateX(20px)}
+.progress-bar{height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.progress-bar .fill{height:100%;background:var(--accent);border-radius:4px;
+  transition:width 0.5s ease}
+
+/* ================================================================
+   Toast System
+   ================================================================ */
+#toast-container{position:fixed;top:20px;left:50%;transform:translateX(-50%);
+  z-index:9999;display:flex;flex-direction:column;align-items:center;gap:8px;
+  pointer-events:none}
+.toast{padding:12px 24px;border-radius:var(--radius-sm);font-size:14px;font-weight:600;
+  background:var(--bg-card);border:1px solid var(--border);color:var(--text-primary);
+  box-shadow:var(--shadow);animation:toastIn 0.3s ease,toastOut 0.3s ease 2.2s forwards;
+  pointer-events:auto;backdrop-filter:blur(12px);white-space:nowrap}
+
+/* ================================================================
+   Particle Canvas
+   ================================================================ */
+#particle-canvas{position:fixed;top:0;left:0;width:100%;height:100%;
+  pointer-events:none;z-index:9998}
+
+/* ================================================================
+   Screen Shake
+   ================================================================ */
+.shake{animation:shake 0.3s ease}
+
+/* ================================================================
+   Page: Release
+   ================================================================ */
+.release-center{display:flex;flex-direction:column;align-items:center;padding:20px 0}
+.emotion-tags{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:24px}
+.emotion-tag{padding:8px 18px;border-radius:20px;font-size:14px;font-weight:500;
+  background:var(--bg-card);border:2px solid var(--border);transition:var(--transition);
+  cursor:pointer}
+.emotion-tag:hover{border-color:var(--text-muted)}
+.emotion-tag.selected{color:#fff;border-color:transparent}
+.release-btn{width:200px;height:200px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),rgba(var(--accent-rgb),0.6));
+  color:#fff;font-size:28px;font-weight:800;
+  box-shadow:0 0 40px rgba(var(--accent-rgb),0.4),0 8px 24px rgba(0,0,0,0.3);
+  transition:all 0.2s ease;position:relative;overflow:hidden}
+.release-btn:hover{transform:scale(1.05);box-shadow:0 0 60px rgba(var(--accent-rgb),0.5)}
+.release-btn:active{transform:scale(0.93)}
+.release-btn .ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,0.3);
+  animation:ripple 0.6s ease-out forwards;pointer-events:none}
+.release-counter{margin-top:24px;text-align:center}
+.release-counter .count{font-size:48px;font-weight:800;color:var(--accent)}
+.release-counter .label{font-size:13px;color:var(--text-secondary)}
+.zen-quote{margin-top:20px;font-size:14px;color:var(--text-muted);font-style:italic;
+  text-align:center;max-width:400px;line-height:1.6}
+.hotkey-hint{font-size:11px;color:var(--text-muted);margin-top:8px}
+
+/* ================================================================
+   Page: Clicker
+   ================================================================ */
+.clicker-center{display:flex;flex-direction:column;align-items:center;padding:10px 0}
+.clicker-btn{width:180px;height:180px;border-radius:50%;
+  background:linear-gradient(135deg,#6c5ce7,#a29bfe);
+  color:#fff;font-size:36px;font-weight:800;
+  box-shadow:0 0 40px rgba(108,92,231,0.4);transition:all 0.1s ease;margin:20px 0}
+.clicker-btn:active{transform:scale(0.9)}
+.clicker-stats{display:flex;gap:32px;margin-top:16px}
+.clicker-stat{text-align:center}
+.clicker-stat .val{font-size:32px;font-weight:800}
+.clicker-stat .lbl{font-size:11px;color:var(--text-secondary)}
+.clicker-rating{font-size:14px;color:var(--text-secondary);margin-top:16px;min-height:24px}
+
+/* ================================================================
+   Page: Breath
+   ================================================================ */
+.breath-center{display:flex;flex-direction:column;align-items:center;padding:10px 0}
+.breath-circle-wrap{position:relative;width:260px;height:260px;margin:16px 0}
+.breath-circle{width:100%;height:100%;border-radius:50%;
+  background:radial-gradient(circle,rgba(var(--accent-rgb),0.3),rgba(var(--accent-rgb),0.05));
+  border:3px solid var(--accent);
+  display:flex;align-items:center;justify-content:center;
+  transition:transform 0.1s linear;transform:scale(0.45)}
+.breath-circle .breath-text{font-size:24px;font-weight:700;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,0.5)}
+.breath-ring{position:absolute;inset:-8px;border-radius:50%;border:1px solid rgba(var(--accent-rgb),0.2);
+  pointer-events:none}
+.breath-ring:nth-child(2){inset:-16px;border-color:rgba(var(--accent-rgb),0.1)}
+.breath-controls{display:flex;gap:10px;margin:16px 0}
+.breath-settings{width:100%;max-width:400px}
+
+/* ================================================================
+   Page: Stats
+   ================================================================ */
+.chart-wrap{background:var(--bg-card);border-radius:var(--radius);padding:16px;
+  margin-bottom:16px;border:1px solid var(--border)}
+.chart-wrap .chart-title{font-size:14px;font-weight:600;margin-bottom:12px;
+  display:flex;align-items:center;gap:6px}
+.chart-wrap canvas{max-height:240px}
+
+/* ================================================================
+   Page: Achievements
+   ================================================================ */
+.achv-card{display:flex;align-items:center;gap:16px;padding:16px;
+  background:var(--bg-card);border-radius:var(--radius);margin-bottom:10px;
+  border:1px solid var(--border);transition:var(--transition)}
+.achv-card.unlocked{border-color:rgba(255,215,0,0.4);background:rgba(255,215,0,0.03)}
+.achv-icon{font-size:32px;width:48px;text-align:center;flex-shrink:0}
+.achv-info{flex:1;min-width:0}
+.achv-name{font-size:14px;font-weight:600}
+.achv-desc{font-size:12px;color:var(--text-secondary);margin-top:2px}
+.achv-reward{font-size:11px;color:#FFD700;margin-top:4px}
+.achv-progress{width:120px;flex-shrink:0;text-align:right}
+.achv-progress .progress-text{font-size:11px;color:var(--text-muted);margin-top:4px}
+
+/* ================================================================
+   Page: Pomodoro
+   ================================================================ */
+.pomo-center{display:flex;flex-direction:column;align-items:center;padding:10px 0}
+.pomo-ring-wrap{position:relative;width:240px;height:240px;margin:16px 0}
+.pomo-ring-wrap svg{width:100%;height:100%;transform:rotate(-90deg)}
+.pomo-ring-wrap .pomo-time{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center}
+.pomo-ring-wrap .pomo-time .time{font-size:42px;font-weight:800}
+.pomo-ring-wrap .pomo-time .status{font-size:13px;color:var(--text-secondary);margin-top:4px}
+.pomo-controls{display:flex;gap:10px;margin:12px 0}
+.pomo-settings{width:100%;max-width:400px}
+
+/* ================================================================
+   Page: Report
+   ================================================================ */
+.report-preview{background:var(--bg-card);border-radius:var(--radius);padding:20px;
+  border:1px solid var(--border);min-height:300px;display:flex;align-items:center;
+  justify-content:center;margin-bottom:16px}
+.report-preview .placeholder{color:var(--text-muted);font-size:14px}
+#report-card{background:var(--bg-primary);border-radius:12px;padding:24px;width:100%;max-width:600px}
+#report-card .rc-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+#report-card .rc-title{font-size:18px;font-weight:700}
+#report-card .rc-date{font-size:11px;color:var(--text-muted)}
+#report-card .rc-stats{display:flex;gap:24px;margin-bottom:16px}
+#report-card .rc-stat .rc-val{font-size:28px;font-weight:800;color:var(--accent)}
+#report-card .rc-stat .rc-lbl{font-size:11px;color:var(--text-secondary)}
+#report-card .rc-bar{height:4px;background:var(--accent);border-radius:2px;margin-bottom:16px}
+#report-card .rc-footer{font-size:10px;color:var(--text-muted);text-align:center;
+  padding-top:12px;border-top:1px solid var(--border)}
+
+/* ================================================================
+   Page: Settings
+   ================================================================ */
+.settings-section{margin-bottom:20px}
+.settings-row{display:flex;align-items:center;justify-content:space-between;
+  padding:12px 0;border-bottom:1px solid var(--border)}
+.settings-row:last-child{border-bottom:none}
+.settings-row .sr-left{display:flex;align-items:center;gap:10px}
+.settings-row .sr-label{font-size:14px}
+.settings-row .sr-value{font-size:13px;color:var(--text-secondary)}
+.skin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.skin-item{padding:12px;border-radius:var(--radius-sm);border:2px solid var(--border);
+  cursor:pointer;transition:var(--transition);text-align:center;position:relative}
+.skin-item:hover{border-color:var(--text-muted)}
+.skin-item.active{border-color:var(--accent)}
+.skin-item.locked{opacity:0.5;cursor:not-allowed}
+.skin-item .skin-dot{width:20px;height:20px;border-radius:50%;margin:0 auto 6px}
+.skin-item .skin-name{font-size:12px;font-weight:600}
+.skin-item .skin-lock{position:absolute;top:6px;right:6px;font-size:12px}
+.sound-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+.sound-item{padding:10px;border-radius:var(--radius-sm);border:2px solid var(--border);
+  cursor:pointer;transition:var(--transition);text-align:center;font-size:13px}
+.sound-item:hover{border-color:var(--text-muted)}
+.sound-item.active{border-color:var(--accent);background:rgba(var(--accent-rgb),0.1)}
+.sound-item.locked{opacity:0.5;cursor:not-allowed}
+
+/* ================================================================
+   Floating Text
+   ================================================================ */
+.floating-text{position:fixed;pointer-events:none;z-index:9997;
+  font-size:24px;font-weight:800;animation:floatUp 1.5s ease-out forwards}
+
+/* ================================================================
+   Keyframes
+   ================================================================ */
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes toastIn{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes toastOut{from{opacity:1}to{opacity:0;transform:translateY(-20px)}}
+@keyframes shake{
+  0%,100%{transform:translateX(0)}
+  10%{transform:translateX(-6px) translateY(2px)}
+  30%{transform:translateX(5px) translateY(-2px)}
+  50%{transform:translateX(-4px) translateY(1px)}
+  70%{transform:translateX(3px) translateY(-1px)}
+  90%{transform:translateX(-2px)}
+}
+@keyframes ripple{
+  from{width:0;height:0;opacity:0.5}
+  to{width:300px;height:300px;opacity:0;margin-left:-150px;margin-top:-150px}
+}
+@keyframes floatUp{
+  0%{opacity:1;transform:translateY(0) scale(1)}
+  100%{opacity:0;transform:translateY(-80px) scale(0.7)}
+}
+@keyframes pulse{
+  0%,100%{box-shadow:0 0 20px rgba(var(--accent-rgb),0.3)}
+  50%{box-shadow:0 0 40px rgba(var(--accent-rgb),0.6)}
+}
+
+/* ================================================================
+   Responsive
+   ================================================================ */
+@media(max-width:768px){
+  .sidebar{display:none}
+  .bottom-nav{display:block}
+  .page-container{padding:16px 14px;padding-bottom:80px}
+  .page-title{font-size:22px}
+  .stat-grid{grid-template-columns:repeat(3,1fr)}
+  .release-btn{width:160px;height:160px;font-size:22px}
+  .clicker-btn{width:150px;height:150px;font-size:28px}
+  .clicker-stats{gap:20px}
+  .breath-circle-wrap{width:220px;height:220px}
+  .pomo-ring-wrap{width:200px;height:200px}
+  .skin-grid{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:480px){
+  .stat-grid{grid-template-columns:repeat(2,1fr)}
+  .emotion-tags{gap:6px}
+  .emotion-tag{padding:6px 12px;font-size:13px}
+}
+</style>
+</head>
+<body>
+<!-- ================================================================
+     Particle Canvas (global overlay, pointer-events: none)
+     ================================================================ -->
+<canvas id="particle-canvas"></canvas>
+
+<!-- Toast Container -->
+<div id="toast-container"></div>
+
+<!-- ================================================================
+     App
+     ================================================================ -->
+<div id="app">
+  <!-- Sidebar (Desktop) -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-icon">🧘</span>
+      <div class="logo-text">ZenClicker</div>
+      <div class="logo-ver">v5.0 Web</div>
+    </div>
+    <div class="sidebar-divider"></div>
+    <nav class="sidebar-nav" id="sidebar-nav"></nav>
+    <div class="sidebar-footer">
+      <span class="badge" id="achv-badge">🏅 0/8</span>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="page-container" id="page-container">
+
+      <!-- ====== Page: Release ====== -->
+      <section class="page active" id="page-release">
+        <div class="release-center">
+          <div class="page-title">💥 情绪释放</div>
+          <div class="page-subtitle">选择你的情绪，然后点击释放</div>
+          <div class="emotion-tags" id="emotion-tags"></div>
+          <button class="release-btn" id="release-btn" onclick="App.onRelease()">
+            ✨<br>释放
+          </button>
+          <div class="hotkey-hint">快捷键: Ctrl+Shift+F</div>
+          <div class="release-counter">
+            <div class="count" id="release-count">0</div>
+            <div class="label">累计释放次数</div>
+          </div>
+          <div class="zen-quote" id="zen-quote"></div>
+        </div>
+      </section>
+
+      <!-- ====== Page: Clicker ====== -->
+      <section class="page" id="page-clicker">
+        <div class="clicker-center">
+          <div class="page-title">⚡ 连打挑战</div>
+          <div class="page-subtitle">10秒内疯狂点击，测测你的手速</div>
+          <button class="clicker-btn" id="clicker-btn" onclick="App.onClickerClick()">
+            👆
+          </button>
+          <div class="clicker-stats">
+            <div class="clicker-stat">
+              <div class="val" id="clicker-count" style="color:#a29bfe">0</div>
+              <div class="lbl">点击数</div>
+            </div>
+            <div class="clicker-stat">
+              <div class="val" id="clicker-time" style="color:#FF6B6B">10</div>
+              <div class="lbl">剩余秒数</div>
+            </div>
+            <div class="clicker-stat">
+              <div class="val" id="clicker-best" style="color:#FFD700">0.0</div>
+              <div class="lbl">最佳CPS</div>
+            </div>
+          </div>
+          <div class="clicker-rating" id="clicker-rating">点击按钮开始挑战</div>
+        </div>
+      </section>
+
+      <!-- ====== Page: Breath ====== -->
+      <section class="page" id="page-breath">
+        <div class="breath-center">
+          <div class="page-title">🌬️ 呼吸冥想</div>
+          <div class="page-subtitle">跟随圆圈的节奏，慢慢呼吸</div>
+          <div class="breath-circle-wrap">
+            <div class="breath-ring"></div>
+            <div class="breath-ring"></div>
+            <div class="breath-circle" id="breath-circle">
+              <span class="breath-text" id="breath-text">准备开始</span>
+            </div>
+          </div>
+          <div class="breath-controls">
+            <button class="btn btn-primary" id="breath-start-btn" onclick="App.toggleBreath()">▶ 开始呼吸</button>
+            <button class="btn btn-secondary" onclick="App.resetBreath()">⟲ 重置</button>
+          </div>
+          <div class="breath-settings card">
+            <div class="settings-row">
+              <div class="sr-left"><span class="sr-label">呼吸模式</span></div>
+              <select id="breath-pattern" onchange="App.onBreathPatternChange()" style="width:160px">
+                <option value="4-7-8">4-7-8 助眠</option>
+                <option value="box">方块呼吸</option>
+                <option value="calm">平静 5-5</option>
+              </select>
+            </div>
+            <div class="settings-row">
+              <div class="sr-left"><span class="sr-label">循环次数</span></div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <input type="range" id="breath-cycles" min="1" max="10" value="4"
+                  oninput="App.onBreathCyclesChange()" style="width:120px">
+                <span id="breath-cycles-label" style="font-size:13px;min-width:30px">4 次</span>
+              </div>
+            </div>
+            <div style="text-align:center;margin-top:8px">
+              <span id="breath-progress" style="font-size:12px;color:var(--text-muted)"></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====== Page: Stats ====== -->
+      <section class="page" id="page-stats">
+        <div class="page-title">📊 数据统计</div>
+        <div class="page-subtitle">查看你的情绪释放记录</div>
+        <div class="stat-grid" id="stats-cards"></div>
+        <div class="chart-wrap">
+          <div class="chart-title">📈 7天释放趋势</div>
+          <canvas id="chart-daily"></canvas>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="chart-wrap">
+            <div class="chart-title">🎭 情绪分布</div>
+            <canvas id="chart-emo"></canvas>
+          </div>
+          <div class="chart-wrap">
+            <div class="chart-title">🕐 24小时分布</div>
+            <canvas id="chart-hour"></canvas>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:12px">
+          <button class="btn btn-secondary" onclick="App.refreshStats()">🔄 刷新数据</button>
+          <button class="btn btn-secondary" onclick="App.exportCSV()">📤 导出CSV</button>
+        </div>
+      </section>
+
+      <!-- ====== Page: Achievements ====== -->
+      <section class="page" id="page-achievements">
+        <div class="page-title">🏆 成就系统</div>
+        <div class="page-subtitle" id="achv-summary"></div>
+        <div id="achv-list"></div>
+      </section>
+
+      <!-- ====== Page: Pomodoro ====== -->
+      <section class="page" id="page-pomodoro">
+        <div class="pomo-center">
+          <div class="page-title">🍅 番茄钟</div>
+          <div class="page-subtitle">专注工作，定时释放</div>
+          <div class="pomo-ring-wrap">
+            <svg viewBox="0 0 240 240">
+              <circle cx="120" cy="120" r="104" fill="none" stroke="var(--border)" stroke-width="12"/>
+              <circle cx="120" cy="120" r="104" fill="none" stroke="var(--accent)" stroke-width="12"
+                stroke-linecap="round" stroke-dasharray="653.45" stroke-dashoffset="653.45"
+                id="pomo-ring-circle"/>
+            </svg>
+            <div class="pomo-time">
+              <div class="time" id="pomo-time">25:00</div>
+              <div class="status" id="pomo-status">准备开始</div>
+            </div>
+          </div>
+          <div class="pomo-controls">
+            <button class="btn btn-primary" id="pomo-start-btn" onclick="App.togglePomo()">▶ 开始</button>
+            <button class="btn btn-secondary" onclick="App.resetPomo()">⟲ 重置</button>
+          </div>
+          <button class="btn btn-secondary" style="background:#6c5ce7;color:#fff;margin:8px 0"
+            onclick="App.quickRelease()">💥 快速释放</button>
+          <div style="font-size:13px;color:var(--text-secondary);margin:4px 0" id="pomo-completed">今日完成: 0 个番茄</div>
+          <div class="pomo-settings card">
+            <div class="card-title">⚙️ 计时设置</div>
+            <div class="settings-row">
+              <span class="sr-label">工作时长</span>
+              <div style="display:flex;align-items:center;gap:8px">
+                <input type="range" id="pomo-work" min="5" max="60" value="25"
+                  oninput="App.onPomoWorkChange()" style="width:120px">
+                <span id="pomo-work-label" style="font-size:13px;min-width:48px">25分钟</span>
+              </div>
+            </div>
+            <div class="settings-row">
+              <span class="sr-label">休息时长</span>
+              <div style="display:flex;align-items:center;gap:8px">
+                <input type="range" id="pomo-break" min="1" max="20" value="5"
+                  oninput="App.onPomoBreakChange()" style="width:120px">
+                <span id="pomo-break-label" style="font-size:13px;min-width:48px">5分钟</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====== Page: Report ====== -->
+      <section class="page" id="page-report">
+        <div class="page-title">📋 情绪周报</div>
+        <div class="page-subtitle">生成你的专属数据卡片</div>
+        <div class="report-preview" id="report-preview">
+          <div class="placeholder" id="report-placeholder">点击下方按钮生成周报</div>
+          <div id="report-card" style="display:none"></div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="App.generateReport()">🔄 生成周报</button>
+          <button class="btn btn-secondary" id="report-save-btn" onclick="App.saveReport()" disabled>💾 保存图片</button>
+          <button class="btn btn-secondary" id="report-copy-btn" onclick="App.copyReport()" disabled>📋 复制到剪贴板</button>
+        </div>
+      </section>
+
+      <!-- ====== Page: Settings ====== -->
+      <section class="page" id="page-settings">
+        <div class="page-title">⚙️ 设置</div>
+        <div class="page-subtitle">个性化你的禅意空间</div>
+
+        <div class="settings-section">
+          <div class="card">
+            <div class="card-title">🔊 音效设置</div>
+            <div class="sound-grid" id="sound-grid"></div>
+            <div class="settings-row" style="margin-top:12px">
+              <span class="sr-label">音量</span>
+              <div style="display:flex;align-items:center;gap:8px;flex:1;max-width:240px">
+                <input type="range" id="volume-slider" min="0" max="100" value="70"
+                  oninput="App.onVolumeChange()">
+                <span id="volume-label" style="font-size:13px;min-width:36px">70%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="card">
+            <div class="card-title">🎨 主题皮肤</div>
+            <div class="skin-grid" id="skin-grid"></div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="card">
+            <div class="card-title">🎁 兑换码</div>
+            <div style="display:flex;gap:10px">
+              <input type="text" id="redeem-input" placeholder="输入兑换码..." style="flex:1">
+              <button class="btn btn-primary btn-sm" onclick="App.redeemCode()">兑换</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="card">
+            <div class="card-title">🎮 其他设置</div>
+            <div class="settings-row">
+              <span class="sr-label">粒子效果</span>
+              <label class="switch">
+                <input type="checkbox" id="particles-switch" checked onchange="App.onParticlesToggle()">
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="settings-row">
+              <span class="sr-label">手机震动反馈</span>
+              <label class="switch">
+                <input type="checkbox" id="vibrate-switch" checked onchange="App.onVibrateToggle()">
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="card">
+            <div class="card-title">🔒 隐私保护</div>
+            <div style="font-size:13px;color:var(--text-secondary);line-height:1.8">
+              • 全程无网络请求，所有数据存储在浏览器本地<br>
+              • 使用 localStorage 持久化<br>
+              • 不收集任何个人信息
+            </div>
+            <button class="btn btn-danger" style="margin-top:12px" onclick="App.clearAllData()">
+              🗑️ 一键清除所有数据
+            </button>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="card">
+            <div class="card-title">ℹ️ 关于</div>
+            <div style="font-size:13px;color:var(--text-secondary);line-height:1.8;text-align:center">
+              ZenClicker v5.0 Web<br>
+              桌面端禅意点击疗愈工具<br>
+              每一次点击，都是一次放下 🧘
+            </div>
+            <div class="zen-quote" id="settings-quote" style="margin-top:12px"></div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Bottom Nav (Mobile) -->
+    <div class="bottom-nav">
+      <div class="bottom-nav-inner" id="bottom-nav"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   Constants
+   ================================================================ */
+const EMOTION_TAGS = [
+  {name:'未标记',icon:'🤷',color:'#888888'},
+  {name:'焦虑',icon:'😰',color:'#FF6B6B'},
+  {name:'愤怒',icon:'😤',color:'#FF8E53'},
+  {name:'疲惫',icon:'😩',color:'#A29BFE'},
+  {name:'开心',icon:'😊',color:'#00D2D3'},
+  {name:'平静',icon:'😌',color:'#54A0FF'},
+];
+
+const ACHIEVEMENTS = [
+  {threshold:10,name:'初阶释放者',desc:'累计释放10次',type:'sound',unlock:'woodfish'},
+  {threshold:30,name:'压力粉碎机',desc:'累计释放30次',type:'skin',unlock:'ocean'},
+  {threshold:50,name:'情绪冲浪手',desc:'累计释放50次',type:'sound',unlock:'rain'},
+  {threshold:100,name:'情绪大师',desc:'累计释放100次',type:'skin',unlock:'sakura'},
+  {threshold:200,name:'赛博禅师',desc:'累计释放200次',type:'skin',unlock:'aurora'},
+  {threshold:500,name:'传奇释放者',desc:'累计释放500次',type:'sound',unlock:'cosmic'},
+  {threshold:1000,name:'万物皆空',desc:'累计释放1000次',type:'skin',unlock:'galaxy'},
+  {threshold:2000,name:'点击之神',desc:'累计释放2000次',type:'sound',unlock:'bell'},
+];
+
+const REDEEM_CODES = {
+  'ZEN2026':  {type:'skin',id:'cyberpunk',desc:'赛博朋克主题'},
+  'CLICK123': {type:'sound',id:'crystal',desc:'水晶音效包'},
+  'ZENMASTER':{type:'skin',id:'zen',desc:'禅意主题'},
+  'VIP2026':  {type:'skin',id:'neon',desc:'霓虹主题'},
+  'GALAXY':   {type:'skin',id:'galaxy',desc:'星河紫夜主题'},
+  'FOREST':   {type:'skin',id:'forest',desc:'森林晨雾主题'},
+};
+
+const SKINS = {
+  default:  {name:'默认暗色',accent:'#1f6aa5',rgb:'31,106,165'},
+  ocean:    {name:'深海静谧',accent:'#00b894',rgb:'0,184,148'},
+  sakura:   {name:'樱花物语',accent:'#fd79a8',rgb:'253,121,168'},
+  aurora:   {name:'极光幻梦',accent:'#a29bfe',rgb:'162,155,254'},
+  cyberpunk:{name:'赛博朋克',accent:'#00fff5',rgb:'0,255,245'},
+  zen:      {name:'禅意空间',accent:'#a8e6cf',rgb:'168,230,207'},
+  neon:     {name:'霓虹都市',accent:'#ff00ff',rgb:'255,0,255'},
+  galaxy:   {name:'星河紫夜',accent:'#7d5fff',rgb:'125,95,255'},
+  forest:   {name:'森林晨雾',accent:'#2ecc71',rgb:'46,204,113'},
+};
+
+const SOUNDS = {
+  ding:    {name:'默认叮声'},
+  pop:     {name:'气泡弹出'},
+  woodfish:{name:'木鱼'},
+  rain:    {name:'水滴'},
+  crystal: {name:'水晶'},
+  cosmic:  {name:'宇宙'},
+  bell:    {name:'禅钟'},
+  chime:   {name:'风铃'},
+};
+
+const ZEN_QUOTES = [
+  '春有百花秋有月，夏有凉风冬有雪。',
+  '你不需要成为任何人，你只需要成为你自己。',
+  '情绪没有好坏，它们只是路过的云。',
+  '慢慢来，比较快。',
+  '此刻的你，已经足够好。',
+  '呼吸是回家最近的路。',
+  '允许一切发生，是自由的开始。',
+  '山不过来，我就过去。',
+  '万物皆有裂痕，那是光照进来的地方。',
+  '你无法控制风向，但可以调整风帆。',
+  '静坐常思己过，闲谈莫论人非。',
+  '心若没有栖息的地方，到哪里都是流浪。',
+  '风来疏竹，风过而竹不留声。',
+  '把每一次点击，当作一次放下。',
+  '过去心不可得，现在心不可得，未来心不可得。',
+  '你不是你的情绪，你是观察情绪的那个人。',
+  '行到水穷处，坐看云起时。',
+  '温柔地对待自己，你值得。',
+  '一念放下，万般自在。',
+  '生活在当下，是最好的禅修。',
+];
+
+const NAV_ITEMS = [
+  {id:'release',icon:'💥',label:'释放'},
+  {id:'clicker',icon:'⚡',label:'连打'},
+  {id:'breath',icon:'🌬️',label:'呼吸'},
+  {id:'stats',icon:'📊',label:'统计'},
+  {id:'achievements',icon:'🏆',label:'成就'},
+  {id:'pomodoro',icon:'🍅',label:'番茄钟'},
+  {id:'report',icon:'📋',label:'周报'},
+  {id:'settings',icon:'⚙️',label:'设置'},
+];
+
+const BREATH_PATTERNS = {
+  '4-7-8': [{name:'吸气',dur:4,target:1},{name:'屏息',dur:7,target:1},{name:'呼气',dur:8,target:0.45}],
+  'box':   [{name:'吸气',dur:4,target:1},{name:'屏息',dur:4,target:1},{name:'呼气',dur:4,target:0.45},{name:'屏息',dur:4,target:0.45}],
+  'calm':  [{name:'吸气',dur:5,target:1},{name:'呼气',dur:5,target:0.45}],
+};
+
+/* ================================================================
+   Database (localStorage)
+   ================================================================ */
+const DB = {
+  KEY: 'zenclicker_events',
+  getAll() {
+    try { return JSON.parse(localStorage.getItem(this.KEY) || '[]'); }
+    catch { return []; }
+  },
+  add(emotion = '未标记') {
+    const events = this.getAll();
+    events.push({ ts: Date.now(), emotion });
+    localStorage.setItem(this.KEY, JSON.stringify(events));
+  },
+  getTotal() { return this.getAll().length; },
+  getToday() {
+    const today = new Date(); today.setHours(0,0,0,0);
+    return this.getAll().filter(e => e.ts >= today.getTime()).length;
+  },
+  getDaily(days = 7) {
+    const events = this.getAll();
+    const result = [];
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate() - i);
+      const next = new Date(d); next.setDate(next.getDate() + 1);
+      const count = events.filter(e => e.ts >= d.getTime() && e.ts < next.getTime()).length;
+      const label = `${d.getMonth()+1}/${d.getDate()}`;
+      result.push({ label, count });
+    }
+    return result;
+  },
+  getEmotionDist(days = 7) {
+    const since = Date.now() - days * 86400000;
+    const events = this.getAll().filter(e => e.ts >= since);
+    const dist = {};
+    events.forEach(e => { dist[e.emotion] = (dist[e.emotion] || 0) + 1; });
+    return dist;
+  },
+  getHourly(days = 7) {
+    const since = Date.now() - days * 86400000;
+    const events = this.getAll().filter(e => e.ts >= since);
+    const hourly = new Array(24).fill(0);
+    events.forEach(e => { hourly[new Date(e.ts).getHours()]++; });
+    return hourly;
+  },
+  getStreak() {
+    const events = this.getAll();
+    if (!events.length) return 0;
+    const daySet = new Set();
+    events.forEach(e => {
+      const d = new Date(e.ts); d.setHours(0,0,0,0);
+      daySet.add(d.getTime());
+    });
+    const days = [...daySet].sort((a,b) => b - a);
+    let streak = 1;
+    for (let i = 1; i < days.length; i++) {
+      if (days[i-1] - days[i] === 86400000) streak++;
+      else break;
+    }
+    return streak;
+  },
+  clear() { localStorage.removeItem(this.KEY); },
+  exportCSV() {
+    const events = this.getAll();
+    let csv = '\uFEFFID,时间,情绪\n';
+    events.forEach((e, i) => {
+      csv += `${i+1},${new Date(e.ts).toLocaleString('zh-CN')},${e.emotion}\n`;
+    });
+    return csv;
+  }
+};
+
+/* ================================================================
+   Config (localStorage)
+   ================================================================ */
+const Config = {
+  KEY: 'zenclicker_config',
+  defaults: {
+    skin:'default', sound:'ding', volume:0.7,
+    particles:true, vibrate:true,
+    unlockedSkins:['default'], unlockedSounds:['ding','pop'],
+    redeemedCodes:[], bestCPS:0,
+    breathPattern:'4-7-8', breathCycles:4,
+    pomoWork:25, pomoBreak:5, pomoCompleted:0,
+  },
+  data: null,
+  init() {
+    try { this.data = {...this.defaults, ...JSON.parse(localStorage.getItem(this.KEY) || '{}')}; }
+    catch { this.data = {...this.defaults}; }
+  },
+  get(k) { return this.data[k] ?? this.defaults[k]; },
+  set(k, v) { this.data[k] = v; this.save(); },
+  save() { localStorage.setItem(this.KEY, JSON.stringify(this.data)); },
+  unlockSkin(id) {
+    const lst = this.get('unlockedSkins');
+    if (!lst.includes(id)) { lst.push(id); this.set('unlockedSkins', lst); return true; }
+    return false;
+  },
+  unlockSound(id) {
+    const lst = this.get('unlockedSounds');
+    if (!lst.includes(id)) { lst.push(id); this.set('unlockedSounds', lst); return true; }
+    return false;
+  },
+  isSkinUnlocked(id) { return this.get('unlockedSkins').includes(id); },
+  isSoundUnlocked(id) { return this.get('unlockedSounds').includes(id); },
+  isCodeRedeemed(c) { return this.get('redeemedCodes').includes(c); },
+  markCodeRedeemed(c) {
+    const lst = this.get('redeemedCodes'); lst.push(c); this.set('redeemedCodes', lst);
+  }
+};
+
+/* ================================================================
+   Sound Engine (Web Audio API - 纯代码合成)
+   ================================================================ */
+const SoundEngine = {
+  ctx: null,
+  init() {
+    try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); }
+    catch(e) { console.warn('Web Audio API not available'); }
+  },
+  ensureCtx() {
+    if (!this.ctx) this.init();
+    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+  },
+  play(id) {
+    id = id || Config.get('sound');
+    if (!Config.get('particles') && id === 'pop') return; // respect settings
+    this.ensureCtx();
+    if (!this.ctx) return;
+    const vol = Config.get('volume');
+    const fn = this.synths[id] || this.synths.ding;
+    fn.call(this, vol);
+  },
+  synths: {
+    ding(vol) {
+      const ctx = SoundEngine.ctx, t = ctx.currentTime;
+      const osc = ctx.createOscillator(), gain = ctx.createGain();
+      osc.type = 'sine'; osc.frequency.setValueAtTime(880, t);
+      gain.gain.setValueAtTime(vol * 0.5, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(t); osc.stop(t + 0.3);
+    },
+    pop(vol) {
+      const ctx = SoundEngine.ctx, t = ctx.currentTime;
+      const osc = ctx.createOscillator(), gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(2600, t);
+      osc.frequency.exponentialRampToValueAtTime(600, t + 0.15);
+      gain.gain.setValueAtTime(vol * 0.4, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(t); osc.stop(t + 0.15);
+    },
+    woodfish(vol) {
+      const ctx = SoundEngine.ctx, t = ctx.currentTime;
+      const osc = ctx.createOscillator(), gain = ctx.createGain();
+      osc.type = 'triangle'; osc.frequency.setValueAtTime(220, t);
+      gain.gain.setValueAtTime(vol * 0.5, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(t); osc.stop(t + 0.25);
+    },
+    rain(vol) {
+      const ctx = SoundEngine.ctx, t = ctx.currentTime;
+      const osc = ctx.createOscillator(), gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1200, t);
+      osc.frequency.linearRampToValueAtTime(400, t + 0.4);
+      gain.gain.setValueAtTime(vol * 0.3, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(t); osc.stop(t + 0.4);
+    },
+    crystal(vol) {
+      const ctx = SoundEngine.ctx, t = ctx.currentTime;
+      [1047,1319,1568].forEach((f, i) => {
+        const osc = ctx.createOscillator(), gain = ctx.createGain();
+        osc.type = 'sine'; osc.frequency.value = f;
+        gain.gain.setValueAtTime(vol * 0.2 / (i+1), t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(t); osc.stop(t + 0.5);
+      });
+    },
+    cosmic(vol) {
+      const ctx = SoundEngine.ctx, t = ctx.currentTime;
+      const osc = ctx.createOscillator(), gain = ctx.createGain();
+      const lfo = ctx.createOscillator(), lfoGain = ctx.createGain();
+      osc.type = 'sawtooth'; osc.frequency.value = 300;
+      lfo.type = 'sine'; lfo.frequency.value = 5;
+      lfoGain.gain.value = 200;
+      lfo.connect(lfoGain); lfoGain.connect(osc.frequency);
+      gain.gain.setValueAtTime(vol * 0.3, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(t); lfo.start(t); osc.stop(t + 0.6); lfo.stop(t + 0.6);
+    },
+    bell(vol) {
+      const ctx = SoundEngine.ctx, t = ctx.currentTime;
+      [196,392,587].forEach((f, i) => {
+        const osc = ctx.createOscillator(), gain = ctx.createGain();
+        osc.type = 'sine'; osc.frequency.value = f;
+        gain.gain.setValueAtTime(vol * 0.3 / (i+1), t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 1.2);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(t); osc.stop(t + 1.2);
+      });
+    },
+    chime(vol) {
+      const ctx = SoundEngine.ctx, t = ctx.currentTime;
+      [2093,2637,3136].forEach((f, i) => {
+        const osc = ctx.createOscillator(), gain = ctx.createGain();
+        osc.type = 'sine'; osc.frequency.value = f;
+        gain.gain.setValueAtTime(vol * 0.15 / (i+1), t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(t + i * 0.05); osc.stop(t + 0.8);
+      });
+    }
+  }
+};
+
+/* ================================================================
+   Particle Engine (Canvas)
+   ================================================================ */
+const Particles = {
+  canvas: null, ctx: null, particles: [], raf: null,
+  init() {
+    this.canvas = document.getElementById('particle-canvas');
+    this.ctx = this.canvas.getContext('2d');
+    this.resize();
+    window.addEventListener('resize', () => this.resize());
+    this.loop();
+  },
+  resize() {
+    this.canvas.width = window.innerWidth;
+    this.canvas.height = window.innerHeight;
+  },
+  burst(x, y, count = 15, color = null) {
+    if (!Config.get('particles')) return;
+    color = color || SKINS[Config.get('skin')]?.accent || '#1f6aa5';
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 2 + Math.random() * 5;
+      const size = 3 + Math.random() * 5;
+      this.particles.push({
+        x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+        size, color, alpha: 1, decay: 0.015 + Math.random() * 0.02
+      });
+    }
+  },
+  loop() {
+    const ctx = this.ctx;
+    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.particles = this.particles.filter(p => {
+      p.x += p.vx; p.y += p.vy;
+      p.vy += 0.1; // gravity
+      p.alpha -= p.decay;
+      p.size *= 0.98;
+      if (p.alpha <= 0) return false;
+      ctx.globalAlpha = p.alpha;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+      return true;
+    });
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(() => this.loop());
+  }
+};
+
+/* ================================================================
+   Toast
+   ================================================================ */
+function showToast(msg, color = 'var(--accent)') {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  el.style.borderLeftColor = color;
+  el.style.borderLeft = `3px solid ${color}`;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => el.remove(), 2600);
+}
+
+/* ================================================================
+   Floating Text
+   ================================================================ */
+function showFloatingText(text, x, y, color = '#FFD700') {
+  const el = document.createElement('div');
+  el.className = 'floating-text';
+  el.textContent = text;
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+  el.style.color = color;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1600);
+}
+
+/* ================================================================
+   Vibrate Helper
+   ================================================================ */
+function vibrate(ms = 50) {
+  if (Config.get('vibrate') && navigator.vibrate) {
+    try { navigator.vibrate(ms); } catch {}
+  }
+}
+
+/* ================================================================
+   Main App
+   ================================================================ */
+const App = {
+  currentPage: 'release',
+  selectedEmotion: '未标记',
+  charts: {},
+
+  // -- Clicker state --
+  clickerPlaying: false,
+  clickerCount: 0,
+  clickerTimeLeft: 10,
+  clickerTimer: null,
+
+  // -- Breath state --
+  breathRunning: false,
+  breathPhaseIdx: 0,
+  breathPhaseElapsed: 0,
+  breathCyclesDone: 0,
+  breathCurrentScale: 0.45,
+  breathStartScale: 0.45,
+  breathRAF: null,
+  breathLastTick: 0,
+
+  // -- Pomodoro state --
+  pomoRunning: false,
+  pomoIsBreak: false,
+  pomoRemaining: 25 * 60,
+  pomoTotalSeconds: 25 * 60,
+  pomoTimer: null,
+  pomoCompleted: 0,
+
+  /* ---- Init ---- */
+  init() {
+    Config.init();
+    SoundEngine.init();
+    Particles.init();
+    this.buildNav();
+    this.buildEmotionTags();
+    this.applySkin(Config.get('skin'));
+    this.updateReleaseCount();
+    this.refreshQuote();
+    this.initSettings();
+    this.initBreath();
+    this.initPomo();
+    this.setupHotkey();
+    this.showPage('release');
+    // Resume audio context on first interaction
+    document.addEventListener('click', () => SoundEngine.ensureCtx(), { once: true });
+    document.addEventListener('touchstart', () => SoundEngine.ensureCtx(), { once: true });
+  },
+
+  /* ---- Navigation ---- */
+  buildNav() {
+    const sidebar = document.getElementById('sidebar-nav');
+    const bottom = document.getElementById('bottom-nav');
+    NAV_ITEMS.forEach(item => {
+      // Sidebar
+      const btn = document.createElement('button');
+      btn.className = 'nav-btn';
+      btn.dataset.page = item.id;
+      btn.innerHTML = `<span class="nav-icon">${item.icon}</span>${item.label}`;
+      btn.onclick = () => this.showPage(item.id);
+      sidebar.appendChild(btn);
+      // Bottom nav (show fewer items on mobile)
+      const bbtn = document.createElement('button');
+      bbtn.className = 'bnav-btn';
+      bbtn.dataset.page = item.id;
+      bbtn.innerHTML = `<span class="bnav-icon">${item.icon}</span>${item.label}`;
+      bbtn.onclick = () => this.showPage(item.id);
+      bottom.appendChild(bbtn);
+    });
+  },
+
+  showPage(id) {
+    this.currentPage = id;
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + id)?.classList.add('active');
+    document.querySelectorAll('.nav-btn,.bnav-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.page === id);
+    });
+    document.getElementById('page-container').scrollTop = 0;
+    // Page-specific init
+    if (id === 'stats') this.refreshStats();
+    if (id === 'achievements') this.renderAchievements();
+    if (id === 'settings') this.renderSettings();
+  },
+
+  /* ---- Skin ---- */
+  applySkin(id) {
+    const skin = SKINS[id] || SKINS.default;
+    document.documentElement.style.setProperty('--accent', skin.accent);
+    document.documentElement.style.setProperty('--accent-rgb', skin.rgb);
+    Config.set('skin', id);
+  },
+
+  /* ---- Emotion Tags ---- */
+  buildEmotionTags() {
+    const container = document.getElementById('emotion-tags');
+    EMOTION_TAGS.forEach(tag => {
+      const btn = document.createElement('button');
+      btn.className = 'emotion-tag' + (tag.name === this.selectedEmotion ? ' selected' : '');
+      btn.textContent = `${tag.icon} ${tag.name}`;
+      if (tag.name === this.selectedEmotion) {
+        btn.style.background = tag.color;
+        btn.style.borderColor = tag.color;
+      }
+      btn.onclick = () => {
+        this.selectedEmotion = tag.name;
+        container.querySelectorAll('.emotion-tag').forEach(b => {
+          b.classList.remove('selected');
+          b.style.background = '';
+          b.style.borderColor = '';
+        });
+        btn.classList.add('selected');
+        btn.style.background = tag.color;
+        btn.style.borderColor = tag.color;
+        SoundEngine.play('pop');
+        vibrate(20);
+      };
+      container.appendChild(btn);
+    });
+  },
+
+  /* ---- Release ---- */
+  onRelease() {
+    DB.add(this.selectedEmotion);
+    SoundEngine.play();
+    vibrate(80);
+
+    // Screen shake
+    const mc = document.querySelector('.main-content');
+    mc.classList.add('shake');
+    setTimeout(() => mc.classList.remove('shake'), 300);
+
+    // Particles at button center
+    const btn = document.getElementById('release-btn');
+    const rect = btn.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const tagInfo = EMOTION_TAGS.find(t => t.name === this.selectedEmotion);
+    const color = tagInfo?.color || '#FFD700';
+    Particles.burst(cx, cy, 18, color);
+
+    // Floating text
+    const icon = tagInfo?.icon || '✨';
+    showFloatingText(
+      `${icon} ${this.selectedEmotion} -1`,
+      cx - 60 + Math.random() * 40,
+      cy - 40,
+      color
+    );
+
+    // Button pulse
+    btn.style.transform = 'scale(0.9)';
+    setTimeout(() => btn.style.transform = '', 150);
+
+    this.updateReleaseCount();
+    this.refreshQuote();
+    this.checkAchievements();
+    this.updateAchvBadge();
+  },
+
+  updateReleaseCount() {
+    document.getElementById('release-count').textContent = DB.getTotal();
+  },
+
+  refreshQuote() {
+    const q = ZEN_QUOTES[Math.floor(Math.random() * ZEN_QUOTES.length)];
+    document.getElementById('zen-quote').textContent = `「${q}」`;
+  },
+
+  /* ---- Hotkey ---- */
+  setupHotkey() {
+    document.addEventListener('keydown', e => {
+      if (e.ctrlKey && e.shiftKey && e.key === 'F') {
+        e.preventDefault();
+        this.onRelease();
+      }
+    });
+  },
+
+  /* ---- Clicker ---- */
+  onClickerClick() {
+    if (!this.clickerPlaying) {
+      this.startClicker();
+      return;
+    }
+    this.clickerCount++;
+    document.getElementById('clicker-count').textContent = this.clickerCount;
+    SoundEngine.play('pop');
+    vibrate(15);
+
+    const btn = document.getElementById('clicker-btn');
+    const rect = btn.getBoundingClientRect();
+    Particles.burst(
+      rect.left + rect.width/2 + (Math.random()-0.5)*60,
+      rect.top + rect.height/2 + (Math.random()-0.5)*60,
+      5, SKINS[Config.get('skin')]?.accent
+    );
+  },
+
+  startClicker() {
+    this.clickerPlaying = true;
+    this.clickerCount = 0;
+    this.clickerTimeLeft = 10;
+    document.getElementById('clicker-count').textContent = '0';
+    document.getElementById('clicker-time').textContent = '10';
+    document.getElementById('clicker-rating').textContent = '🔥 疯狂点击中...';
+    document.getElementById('clicker-rating').style.color = '#FF6B6B';
+    this.clickerTimer = setInterval(() => {
+      this.clickerTimeLeft--;
+      document.getElementById('clicker-time').textContent = this.clickerTimeLeft;
+      if (this.clickerTimeLeft <= 0) this.finishClicker();
+    }, 1000);
+  },
+
+  finishClicker() {
+    clearInterval(this.clickerTimer);
+    this.clickerPlaying = false;
+    const cps = (this.clickerCount / 10).toFixed(1);
+    let rating;
+    if (cps >= 9) rating = '⚡ 手速之神！凡人无法企及';
+    else if (cps >= 7) rating = '🔥 闪电侠客！键盘在燃烧';
+    else if (cps >= 5) rating = '🥁 节奏大师！稳定输出';
+    else if (cps >= 3) rating = '🚶 稳步前行！重在参与';
+    else rating = '🧘 佛系点击！禅意满满';
+
+    let isNew = false;
+    if (parseFloat(cps) > Config.get('bestCPS')) {
+      Config.set('bestCPS', parseFloat(cps));
+      document.getElementById('clicker-best').textContent = cps;
+      isNew = true;
+    }
+
+    document.getElementById('clicker-rating').textContent =
+      `${rating} | ${cps} CPS` + (isNew ? ' 🎉 新纪录！' : '');
+    document.getElementById('clicker-rating').style.color = '#FFD700';
+
+    SoundEngine.play('bell');
+    vibrate(200);
+
+    const btn = document.getElementById('clicker-btn');
+    const rect = btn.getBoundingClientRect();
+    Particles.burst(rect.left + rect.width/2, rect.top + rect.height/2, 30, '#FFD700');
+  },
+
+  /* ---- Breath ---- */
+  initBreath() {
+    document.getElementById('breath-pattern').value = Config.get('breathPattern');
+    document.getElementById('breath-cycles').value = Config.get('breathCycles');
+    document.getElementById('breath-cycles-label').textContent = Config.get('breathCycles') + ' 次';
+  },
+
+  toggleBreath() {
+    if (this.breathRunning) this.pauseBreath();
+    else this.startBreath();
+  },
+
+  startBreath() {
+    this.breathRunning = true;
+    document.getElementById('breath-start-btn').textContent = '⏸ 暂停';
+    SoundEngine.play('chime');
+    vibrate(50);
+    this.breathLastTick = performance.now();
+    this.breathTick();
+  },
+
+  pauseBreath() {
+    this.breathRunning = false;
+    document.getElementById('breath-start-btn').textContent = '▶ 继续';
+    document.getElementById('breath-text').textContent = '⏸ 已暂停';
+    if (this.breathRAF) cancelAnimationFrame(this.breathRAF);
+  },
+
+  resetBreath() {
+    this.breathRunning = false;
+    this.breathPhaseIdx = 0;
+    this.breathPhaseElapsed = 0;
+    this.breathCyclesDone = 0;
+    this.breathCurrentScale = 0.45;
+    this.breathStartScale = 0.45;
+    document.getElementById('breath-start-btn').textContent = '▶ 开始呼吸';
+    document.getElementById('breath-text').textContent = '准备开始';
+    document.getElementById('breath-circle').style.transform = 'scale(0.45)';
+    document.getElementById('breath-progress').textContent = '';
+    if (this.breathRAF) cancelAnimationFrame(this.breathRAF);
+  },
+
+  breathTick() {
+    if (!this.breathRunning) return;
+    const now = performance.now();
+    const dt = (now - this.breathLastTick) / 1000;
+    this.breathLastTick = now;
+
+    const patternKey = Config.get('breathPattern');
+    const pattern = BREATH_PATTERNS[patternKey] || BREATH_PATTERNS['4-7-8'];
+    const phase = pattern[this.breathPhaseIdx];
+
+    this.breathPhaseElapsed += dt;
+    const progress = Math.min(1, this.breathPhaseElapsed / phase.dur);
+    const eased = 0.5 - 0.5 * Math.cos(Math.PI * progress);
+    this.breathCurrentScale = this.breathStartScale + (phase.target - this.breathStartScale) * eased;
+
+    document.getElementById('breath-circle').style.transform = `scale(${this.breathCurrentScale})`;
+    document.getElementById('breath-text').textContent = phase.name;
+
+    const cycles = Config.get('breathCycles');
+    document.getElementById('breath-progress').textContent =
+      `第 ${Math.min(this.breathCyclesDone + 1, cycles)}/${cycles} 轮`;
+
+    if (this.breathPhaseElapsed >= phase.dur) {
+      this.breathStartScale = phase.target;
+      this.breathPhaseElapsed = 0;
+      this.breathPhaseIdx = (this.breathPhaseIdx + 1) % pattern.length;
+      if (this.breathPhaseIdx === 0) {
+        this.breathCyclesDone++;
+        if (this.breathCyclesDone >= cycles) {
+          this.finishBreath();
+          return;
+        }
+      }
+    }
+
+    this.breathRAF = requestAnimationFrame(() => this.breathTick());
+  },
+
+  finishBreath() {
+    this.breathRunning = false;
+    document.getElementById('breath-start-btn').textContent = '▶ 开始呼吸';
+    document.getElementById('breath-text').textContent = '🌿 完成';
+    document.getElementById('breath-progress').textContent = '愿你内心平静';
+    SoundEngine.play('bell');
+    vibrate(200);
+    showToast('🌿 呼吸练习完成，感觉好些了吗？', '#00b894');
+  },
+
+  onBreathPatternChange() {
+    Config.set('breathPattern', document.getElementById('breath-pattern').value);
+    if (!this.breathRunning) this.resetBreath();
+  },
+
+  onBreathCyclesChange() {
+    const v = document.getElementById('breath-cycles').value;
+    document.getElementById('breath-cycles-label').textContent = v + ' 次';
+    Config.set('breathCycles', parseInt(v));
+  },
+
+  /* ---- Stats ---- */
+  refreshStats() {
+    // Stat cards
+    const total = DB.getTotal(), streak = DB.getStreak(), today = DB.getToday();
+    document.getElementById('stats-cards').innerHTML = `
+      <div class="stat-card"><div class="stat-value">${total}</div><div class="stat-label">总释放</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:#FFD700">${streak}</div><div class="stat-label">连续天数</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:#00b894">${today}</div><div class="stat-label">今日</div></div>
+    `;
+
+    const accentColor = SKINS[Config.get('skin')]?.accent || '#1f6aa5';
+    const textColor = '#888899';
+    const gridColor = '#2a2a3a';
+
+    // Daily chart
+    const daily = DB.getDaily(7);
+    this.renderChart('chart-daily', 'line', {
+      labels: daily.map(d => d.label),
+      datasets: [{
+        data: daily.map(d => d.count),
+        borderColor: accentColor,
+        backgroundColor: accentColor + '22',
+        fill: true, tension: 0.4,
+        pointBackgroundColor: accentColor,
+        pointBorderColor: '#fff', pointBorderWidth: 2, pointRadius: 5,
+      }]
+    }, textColor, gridColor);
+
+    // Emotion pie
+    const dist = DB.getEmotionDist(7);
+    const emoLabels = Object.keys(dist);
+    const emoColors = emoLabels.map(name => EMOTION_TAGS.find(t => t.name === name)?.color || '#888');
+    this.renderChart('chart-emo', 'doughnut', {
+      labels: emoLabels,
+      datasets: [{ data: Object.values(dist), backgroundColor: emoColors, borderWidth: 0 }]
+    }, textColor, gridColor);
+
+    // Hourly bar
+    const hourly = DB.getHourly(7);
+    this.renderChart('chart-hour', 'bar', {
+      labels: Array.from({length:24}, (_,i) => `${i}:00`),
+      datasets: [{
+        data: hourly,
+        backgroundColor: hourly.map(v => v > 0 ? accentColor + '88' : gridColor),
+        borderRadius: 3, borderSkipped: false,
+      }]
+    }, textColor, gridColor);
+  },
+
+  renderChart(canvasId, type, data, textColor, gridColor) {
+    if (this.charts[canvasId]) this.charts[canvasId].destroy();
+    const ctx = document.getElementById(canvasId);
+    if (!ctx) return;
+    this.charts[canvasId] = new Chart(ctx, {
+      type,
+      data,
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: { display: type === 'doughnut', labels: { color: textColor, font: { size: 11 } } }
+        },
+        scales: type === 'doughnut' ? {} : {
+          x: { ticks: { color: textColor, font: { size: 10 } }, grid: { color: gridColor } },
+          y: { ticks: { color: textColor, font: { size: 10 } }, grid: { color: gridColor }, beginAtZero: true }
+        }
+      }
+    });
+  },
+
+  exportCSV() {
+    const csv = DB.exportCSV();
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `zenclicker_export_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('📤 导出成功', '#00b894');
+  },
+
+  /* ---- Achievements ---- */
+  checkAchievements() {
+    const total = DB.getTotal();
+    ACHIEVEMENTS.forEach(a => {
+      if (total >= a.threshold) {
+        if (a.type === 'skin') Config.unlockSkin(a.unlock);
+        else Config.unlockSound(a.unlock);
+      }
+    });
+  },
+
+  updateAchvBadge() {
+    const total = DB.getTotal();
+    const unlocked = ACHIEVEMENTS.filter(a => total >= a.threshold).length;
+    document.getElementById('achv-badge').textContent = `🏅 ${unlocked}/${ACHIEVEMENTS.length}`;
+  },
+
+  renderAchievements() {
+    this.checkAchievements();
+    const total = DB.getTotal();
+    const unlocked = ACHIEVEMENTS.filter(a => total >= a.threshold).length;
+    document.getElementById('achv-summary').textContent =
+      `已解锁 ${unlocked}/${ACHIEVEMENTS.length} 个成就 | 总释放 ${total} 次`;
+
+    const list = document.getElementById('achv-list');
+    list.innerHTML = '';
+    ACHIEVEMENTS.forEach(a => {
+      const isUnlocked = total >= a.threshold;
+      const progress = Math.min(1, total / a.threshold);
+      const rewardName = a.type === 'skin'
+        ? `🎨 ${SKINS[a.unlock]?.name || a.unlock}`
+        : `🔊 ${SOUNDS[a.unlock]?.name || a.unlock}`;
+
+      list.innerHTML += `
+        <div class="achv-card ${isUnlocked ? 'unlocked' : ''}">
+          <div class="achv-icon">${isUnlocked ? '🏅' : '🔒'}</div>
+          <div class="achv-info">
+            <div class="achv-name">${a.name}</div>
+            <div class="achv-desc">${a.desc}</div>
+            ${isUnlocked ? `<div class="achv-reward">✅ ${rewardName}</div>` : ''}
+          </div>
+          <div class="achv-progress">
+            ${isUnlocked ? '<span style="color:#FFD700;font-size:13px">已完成</span>' : `
+              <div class="progress-bar"><div class="fill" style="width:${progress*100}%"></div></div>
+              <div class="progress-text">还需 ${a.threshold - total} 次</div>
+            `}
+          </div>
+        </div>
+      `;
+    });
+    this.updateAchvBadge();
+  },
+
+  /* ---- Pomodoro ---- */
+  initPomo() {
+    this.pomoCompleted = Config.get('pomoCompleted');
+    document.getElementById('pomo-work').value = Config.get('pomoWork');
+    document.getElementById('pomo-break').value = Config.get('pomoBreak');
+    document.getElementById('pomo-work-label').textContent = Config.get('pomoWork') + '分钟';
+    document.getElementById('pomo-break-label').textContent = Config.get('pomoBreak') + '分钟';
+    this.pomoRemaining = Config.get('pomoWork') * 60;
+    this.pomoTotalSeconds = Config.get('pomoWork') * 60;
+    this.updatePomoDisplay();
+  },
+
+  togglePomo() {
+    if (this.pomoRunning) this.pausePomo();
+    else this.startPomo();
+  },
+
+  startPomo() {
+    this.pomoRunning = true;
+    document.getElementById('pomo-start-btn').textContent = '⏸ 暂停';
+    document.getElementById('pomo-status').textContent = this.pomoIsBreak ? '☕ 休息中...' : '🍅 专注中...';
+    this.pomoTimer = setInterval(() => this.pomoTick(), 1000);
+  },
+
+  pausePomo() {
+    this.pomoRunning = false;
+    document.getElementById('pomo-start-btn').textContent = '▶ 继续';
+    document.getElementById('pomo-status').textContent = '⏸ 已暂停';
+    clearInterval(this.pomoTimer);
+  },
+
+  resetPomo() {
+    this.pomoRunning = false;
+    this.pomoIsBreak = false;
+    this.pomoRemaining = Config.get('pomoWork') * 60;
+    this.pomoTotalSeconds = Config.get('pomoWork') * 60;
+    document.getElementById('pomo-start-btn').textContent = '▶ 开始';
+    document.getElementById('pomo-status').textContent = '准备开始';
+    clearInterval(this.pomoTimer);
+    this.updatePomoDisplay();
+  },
+
+  pomoTick() {
+    if (this.pomoRemaining <= 0) { this.pomoComplete(); return; }
+    this.pomoRemaining--;
+    this.updatePomoDisplay();
+  },
+
+  updatePomoDisplay() {
+    const m = Math.floor(this.pomoRemaining / 60);
+    const s = this.pomoRemaining % 60;
+    document.getElementById('pomo-time').textContent =
+      `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    const progress = 1 - (this.pomoRemaining / Math.max(1, this.pomoTotalSeconds));
+    const circumference = 2 * Math.PI * 104;
+    document.getElementById('pomo-ring-circle').style.strokeDashoffset =
+      circumference * (1 - progress);
+    document.getElementById('pomo-completed').textContent =
+      `今日完成: ${this.pomoCompleted} 个番茄`;
+  },
+
+  pomoComplete() {
+    clearInterval(this.pomoTimer);
+    this.pomoRunning = false;
+    SoundEngine.play('bell');
+    vibrate(300);
+
+    if (!this.pomoIsBreak) {
+      this.pomoCompleted++;
+      Config.set('pomoCompleted', this.pomoCompleted);
+      this.pomoIsBreak = true;
+      this.pomoRemaining = Config.get('pomoBreak') * 60;
+      this.pomoTotalSeconds = Config.get('pomoBreak') * 60;
+      document.getElementById('pomo-status').textContent = '☕ 休息时间！';
+      document.getElementById('pomo-start-btn').textContent = '▶ 开始休息';
+      showToast('🍅 番茄完成！休息一下吧~', '#00b894');
+      const mc = document.querySelector('.main-content');
+      mc.classList.add('shake'); setTimeout(() => mc.classList.remove('shake'), 300);
+    } else {
+      this.pomoIsBreak = false;
+      this.pomoRemaining = Config.get('pomoWork') * 60;
+      this.pomoTotalSeconds = Config.get('pomoWork') * 60;
+      document.getElementById('pomo-status').textContent = '🍅 准备下一轮';
+      document.getElementById('pomo-start-btn').textContent = '▶ 开始';
+      showToast('☕ 休息结束，继续加油！', '#a29bfe');
+    }
+    this.updatePomoDisplay();
+  },
+
+  quickRelease() {
+    this.onRelease();
+    showToast('💥 情绪已释放！', '#a29bfe');
+  },
+
+  onPomoWorkChange() {
+    const v = parseInt(document.getElementById('pomo-work').value);
+    document.getElementById('pomo-work-label').textContent = v + '分钟';
+    Config.set('pomoWork', v);
+    if (!this.pomoRunning && !this.pomoIsBreak) {
+      this.pomoRemaining = v * 60;
+      this.pomoTotalSeconds = v * 60;
+      this.updatePomoDisplay();
+    }
+  },
+
+  onPomoBreakChange() {
+    const v = parseInt(document.getElementById('pomo-break').value);
+    document.getElementById('pomo-break-label').textContent = v + '分钟';
+    Config.set('pomoBreak', v);
+  },
+
+  /* ---- Report ---- */
+  generateReport() {
+    const total = DB.getTotal();
+    const streak = DB.getStreak();
+    const hourly = DB.getHourly(7);
+    const peakHour = hourly.indexOf(Math.max(...hourly));
+    const dist = DB.getEmotionDist(7);
+    const daily = DB.getDaily(7);
+    const accent = SKINS[Config.get('skin')]?.accent || '#1f6aa5';
+
+    const card = document.getElementById('report-card');
+    card.style.display = 'block';
+    document.getElementById('report-placeholder').style.display = 'none';
+
+    // Emotions summary
+    const emoHTML = Object.entries(dist)
+      .sort((a,b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([name, count]) => {
+        const tag = EMOTION_TAGS.find(t => t.name === name);
+        return `<span class="tag" style="background:${tag?.color || '#888'}22;color:${tag?.color || '#888'};margin:2px">
+          ${tag?.icon || '❓'} ${name} ${count}</span>`;
+      }).join('');
+
+    // Mini sparkline
+    const maxCount = Math.max(...daily.map(d => d.count), 1);
+    const sparkPoints = daily.map((d, i) => {
+      const x = (i / Math.max(1, daily.length - 1)) * 100;
+      const y = 100 - (d.count / maxCount) * 80;
+      return `${x},${y}`;
+    }).join(' ');
+
+    card.innerHTML = `
+      <div class="rc-bar" style="background:${accent}"></div>
+      <div class="rc-header">
+        <div>
+          <div class="rc-title">🧘 ZenClicker Weekly Report</div>
+          <div class="rc-date">${new Date().toLocaleDateString('zh-CN')}</div>
+        </div>
+      </div>
+      <div class="rc-stats">
+        <div class="rc-stat"><div class="rc-val" style="color:${accent}">${total}</div><div class="rc-lbl">Total</div></div>
+        <div class="rc-stat"><div class="rc-val" style="color:#FFD700">${streak}</div><div class="rc-lbl">Streak</div></div>
+        <div class="rc-stat"><div class="rc-val" style="color:#FF6B6B">${String(peakHour).padStart(2,'0')}:00</div><div class="rc-lbl">Peak</div></div>
+      </div>
+      <div style="margin-bottom:12px">${emoHTML || '<span style="color:var(--text-muted);font-size:12px">暂无情绪记录</span>'}</div>
+      <svg viewBox="0 0 100 100" style="width:100%;height:80px;margin-bottom:8px" preserveAspectRatio="none">
+        <polyline points="${sparkPoints}" fill="none" stroke="${accent}" stroke-width="2" vector-effect="non-scaling-stroke"/>
+        ${daily.map((d, i) => {
+          const x = (i / Math.max(1, daily.length - 1)) * 100;
+          const y = 100 - (d.count / maxCount) * 80;
+          return `<circle cx="${x}" cy="${y}" r="2" fill="${accent}" stroke="#fff" stroke-width="1" vector-effect="non-scaling-stroke"/>`;
+        }).join('')}
+      </svg>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted)">
+        ${daily.map(d => `<span>${d.label}</span>`).join('')}
+      </div>
+      <div class="rc-footer">ZenClicker v5.0 Web | Your emotions matter 💜</div>
+    `;
+
+    document.getElementById('report-save-btn').disabled = false;
+    document.getElementById('report-copy-btn').disabled = false;
+    showToast('✅ 周报生成成功！', '#00b894');
+    SoundEngine.play('chime');
+  },
+
+  async saveReport() {
+    try {
+      const card = document.getElementById('report-card');
+      const canvas = await html2canvas(card, { backgroundColor: '#0f0f13', scale: 2 });
+      const url = canvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'zenclicker_report.png';
+      a.click();
+      showToast('💾 已保存', '#00b894');
+    } catch {
+      showToast('❌ 保存失败', '#FF6B6B');
+    }
+  },
+
+  async copyReport() {
+    try {
+      const card = document.getElementById('report-card');
+      const canvas = await html2canvas(card, { backgroundColor: '#0f0f13', scale: 2 });
+      canvas.toBlob(async blob => {
+        try {
+          await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+          showToast('📋 已复制到剪贴板！', '#00b894');
+        } catch {
+          showToast('❌ 复制失败，请尝试保存图片', '#FF6B6B');
+        }
+      });
+    } catch {
+      showToast('❌ 复制失败', '#FF6B6B');
+    }
+  },
+
+  /* ---- Settings ---- */
+  initSettings() {
+    document.getElementById('volume-slider').value = Config.get('volume') * 100;
+    document.getElementById('volume-label').textContent = Math.round(Config.get('volume') * 100) + '%';
+    document.getElementById('particles-switch').checked = Config.get('particles');
+    document.getElementById('vibrate-switch').checked = Config.get('vibrate');
+    document.getElementById('settings-quote').textContent =
+      `「${ZEN_QUOTES[new Date().getDate() % ZEN_QUOTES.length]}」`;
+    document.getElementById('clicker-best').textContent = Config.get('bestCPS').toFixed(1);
+  },
+
+  renderSettings() {
+    // Sound grid
+    const sg = document.getElementById('sound-grid');
+    sg.innerHTML = '';
+    Object.entries(SOUNDS).forEach(([id, info]) => {
+      const unlocked = Config.isSoundUnlocked(id);
+      const active = Config.get('sound') === id;
+      const item = document.createElement('button');
+      item.className = `sound-item ${active ? 'active' : ''} ${!unlocked ? 'locked' : ''}`;
+      item.innerHTML = `${info.name} ${!unlocked ? '🔒' : ''}`;
+      item.onclick = () => {
+        if (!unlocked) { showToast(`🔒 「${info.name}」尚未解锁`, '#FF6B6B'); return; }
+        Config.set('sound', id);
+        SoundEngine.play(id);
+        this.renderSettings();
+        showToast(`🔊 已切换至「${info.name}」`);
+      };
+      sg.appendChild(item);
+    });
+
+    // Skin grid
+    const skg = document.getElementById('skin-grid');
+    skg.innerHTML = '';
+    Object.entries(SKINS).forEach(([id, info]) => {
+      const unlocked = Config.isSkinUnlocked(id);
+      const active = Config.get('skin') === id;
+      const item = document.createElement('button');
+      item.className = `skin-item ${active ? 'active' : ''} ${!unlocked ? 'locked' : ''}`;
+      item.innerHTML = `
+        <div class="skin-dot" style="background:${info.accent}"></div>
+        <div class="skin-name">${info.name}${active ? ' ✓' : ''}</div>
+        ${!unlocked ? '<div class="skin-lock">🔒</div>' : ''}
+      `;
+      item.onclick = () => {
+        if (!unlocked) { showToast(`🔒 「${info.name}」尚未解锁`, '#FF6B6B'); return; }
+        this.applySkin(id);
+        this.renderSettings();
+        this.refreshStats();
+        showToast(`🎨 已切换至「${info.name}」`, info.accent);
+      };
+      skg.appendChild(item);
+    });
+  },
+
+  onVolumeChange() {
+    const v = document.getElementById('volume-slider').value / 100;
+    document.getElementById('volume-label').textContent = Math.round(v * 100) + '%';
+    Config.set('volume', v);
+    SoundEngine.play();
+  },
+
+  onParticlesToggle() {
+    Config.set('particles', document.getElementById('particles-switch').checked);
+  },
+
+  onVibrateToggle() {
+    Config.set('vibrate', document.getElementById('vibrate-switch').checked);
+  },
+
+  redeemCode() {
+    const input = document.getElementById('redeem-input');
+    const code = input.value.trim().toUpperCase();
+    if (!code) { showToast('请输入兑换码', '#FF6B6B'); return; }
+    if (Config.isCodeRedeemed(code)) { showToast('⚠️ 该兑换码已使用过', '#FF8E53'); return; }
+    const info = REDEEM_CODES[code];
+    if (!info) { showToast('❌ 无效兑换码', '#FF6B6B'); return; }
+
+    if (info.type === 'skin') Config.unlockSkin(info.id);
+    else Config.unlockSound(info.id);
+    Config.markCodeRedeemed(code);
+
+    input.value = '';
+    SoundEngine.play('crystal');
+    vibrate(100);
+    showToast(`🎉 兑换成功！${info.desc}`, '#00b894');
+
+    // Burst particles from center
+    Particles.burst(window.innerWidth / 2, window.innerHeight / 2, 25, '#FFD700');
+
+    if (this.currentPage === 'settings') this.renderSettings();
+  },
+
+  clearAllData() {
+    const code = prompt('请输入 "DELETE" 确认清除所有数据：');
+    if (code === 'DELETE') {
+      DB.clear();
+      showToast('🗑️ 所有数据已清除', '#FF6B6B');
+      this.updateReleaseCount();
+      this.updateAchvBadge();
+      if (this.currentPage === 'stats') this.refreshStats();
+      if (this.currentPage === 'achievements') this.renderAchievements();
+    } else if (code !== null) {
+      showToast('取消操作', '#888888');
+    }
+  },
+};
+
+/* ================================================================
+   Boot
+   ================================================================ */
+document.addEventListener('DOMContentLoaded', () => App.init());
+</script>
+</body>
+</html>
