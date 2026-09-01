@@ -1,0 +1,3718 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<meta name="theme-color" content="#0b0e1a">
+<title>ZenClicker Pro · 数字疗愈工作台</title>
+<link id="manifest-link" rel="manifest" href="">
+<style>
+/* ================================================================
+   SECTION: vars — 主题变量（深色默认 / 浅色覆盖）
+   ================================================================ */
+:root{
+  --fscale:1;
+  --accent:#5b8cff;
+  --accent-rgb:91,140,255;
+  --gold:#FFD700;
+  --bg-primary:#0b0e1a;
+  --bg-secondary:rgba(18,22,38,.72);
+  --glass-bg:rgba(24,29,50,.55);
+  --glass-bg-strong:rgba(28,34,58,.78);
+  --glass-border:rgba(255,255,255,.09);
+  --glass-hover:rgba(255,255,255,.05);
+  --text-primary:#eceef8;
+  --text-secondary:#9aa0b8;
+  --text-muted:#5d6480;
+  --border:rgba(255,255,255,.08);
+  --shadow:0 10px 40px rgba(0,0,0,.45);
+  --radius:18px;--radius-sm:12px;--radius-xs:8px;
+  --transition:.3s cubic-bezier(.4,0,.2,1);
+  --font:'Segoe UI','PingFang SC','Microsoft YaHei','Noto Sans SC',sans-serif;
+  --negative:#ff6b6b;--positive:#2ed8a3;
+}
+html[data-theme="light"]{
+  --bg-primary:#eef2fb;
+  --bg-secondary:rgba(255,255,255,.75);
+  --glass-bg:rgba(255,255,255,.62);
+  --glass-bg-strong:rgba(255,255,255,.86);
+  --glass-border:rgba(30,40,80,.10);
+  --glass-hover:rgba(30,40,80,.04);
+  --text-primary:#20243a;
+  --text-secondary:#5b627e;
+  --text-muted:#9aa0b8;
+  --border:rgba(30,40,80,.09);
+  --shadow:0 10px 36px rgba(60,80,140,.16);
+}
+
+/* ================================================================
+   SECTION: base — 重置与基础
+   ================================================================ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{height:100%;overflow:hidden;-webkit-tap-highlight-color:transparent}
+body{font-family:var(--font);height:100%;overflow:hidden;background:var(--bg-primary);
+  color:var(--text-primary);user-select:none;-webkit-user-select:none;
+  transition:background .5s ease,color .5s ease}
+button{font-family:var(--font);cursor:pointer;border:none;outline:none;background:none;color:inherit}
+input,select,textarea{font-family:var(--font);outline:none;border:none;color:var(--text-primary)}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(140,150,190,.35);border-radius:3px}
+
+/* ================================================================
+   SECTION: bgfx — 动态背景与粒子画布
+   ================================================================ */
+#bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+#particle-canvas{position:fixed;inset:0;z-index:60;pointer-events:none}
+
+/* ================================================================
+   SECTION: layout — 应用骨架
+   ================================================================ */
+#app{position:relative;z-index:1;display:flex;height:100%;width:100%}
+.sidebar{width:224px;flex-shrink:0;display:flex;flex-direction:column;z-index:10;
+  background:var(--bg-secondary);backdrop-filter:blur(22px) saturate(1.3);
+  -webkit-backdrop-filter:blur(22px) saturate(1.3);border-right:1px solid var(--glass-border);
+  transition:var(--transition)}
+.sidebar-logo{padding:22px 18px 14px;text-align:center}
+.logo-icon{font-size:38px;display:block;margin-bottom:2px;filter:drop-shadow(0 0 12px rgba(var(--accent-rgb),.5))}
+.logo-text{font-size:calc(17px*var(--fscale));font-weight:800;letter-spacing:1px}
+.logo-ver{font-size:11px;color:var(--text-muted);margin-top:2px}
+.sidebar-divider{height:1px;background:var(--border);margin:0 16px}
+.sidebar-nav{flex:1;padding:8px 10px;overflow-y:auto}
+.nav-btn{display:flex;align-items:center;gap:11px;width:100%;padding:11px 13px;
+  border-radius:var(--radius-sm);font-size:calc(13.5px*var(--fscale));color:var(--text-secondary);
+  transition:var(--transition);margin-bottom:2px;text-align:left}
+.nav-btn:hover{background:var(--glass-hover);color:var(--text-primary);transform:translateX(2px)}
+.nav-btn.active{background:rgba(var(--accent-rgb),.16);color:var(--accent);font-weight:700;
+  box-shadow:inset 0 0 0 1px rgba(var(--accent-rgb),.25)}
+.nav-icon{font-size:17px;width:22px;text-align:center}
+.sidebar-footer{padding:12px 16px;border-top:1px solid var(--border);text-align:center}
+.sidebar-footer .badge{font-size:11px;color:var(--text-muted)}
+
+.main-content{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative;min-width:0}
+
+/* SECTION: topbar — 顶部状态栏（游戏化） */
+.topbar{display:flex;align-items:center;gap:10px;padding:10px 18px;
+  background:var(--bg-secondary);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--glass-border);font-size:12px;flex-shrink:0;flex-wrap:wrap}
+.tb-level{display:flex;align-items:center;gap:8px;min-width:150px}
+.tb-level-badge{padding:3px 10px;border-radius:20px;font-weight:800;font-size:11px;
+  background:linear-gradient(135deg,var(--accent),rgba(var(--accent-rgb),.4));color:#fff;
+  box-shadow:0 0 12px rgba(var(--accent-rgb),.4);white-space:nowrap}
+.tb-xp-track{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden;min-width:60px}
+.tb-xp-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),#9fd0ff);border-radius:3px;transition:width .5s ease}
+.tb-item{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:14px;
+  background:var(--glass-bg);border:1px solid var(--glass-border);font-weight:700;white-space:nowrap}
+.tb-combo{color:#ffb04d;display:none}
+.tb-combo.on{display:flex;animation:comboPulse .6s ease infinite}
+
+.page-container{flex:1;overflow-y:auto;overflow-x:hidden;padding:22px 26px 40px;scroll-behavior:smooth}
+.page{display:none}
+.page.active{display:block;animation:pageIn .4s cubic-bezier(.22,.9,.3,1)}
+
+/* ================================================================
+   SECTION: comp — 通用组件
+   ================================================================ */
+.page-title{font-size:calc(25px*var(--fscale));font-weight:800;margin-bottom:4px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.page-subtitle{font-size:calc(13px*var(--fscale));color:var(--text-secondary);margin-bottom:18px}
+.card{background:var(--glass-bg);backdrop-filter:blur(18px) saturate(1.25);
+  -webkit-backdrop-filter:blur(18px) saturate(1.25);
+  border-radius:var(--radius);padding:18px;margin-bottom:14px;border:1px solid var(--glass-border);
+  transition:var(--transition);box-shadow:0 2px 16px rgba(0,0,0,.12)}
+.card:hover{border-color:rgba(var(--accent-rgb),.32);transform:translateY(-1px)}
+.card-title{font-size:calc(14.5px*var(--fscale));font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 22px;
+  border-radius:var(--radius-sm);font-size:calc(13.5px*var(--fscale));font-weight:700;
+  transition:var(--transition);position:relative;overflow:hidden;min-height:40px}
+.btn:active{transform:scale(.96)}
+.btn-primary{background:linear-gradient(135deg,var(--accent),rgba(var(--accent-rgb),.62));color:#fff;
+  box-shadow:0 4px 16px rgba(var(--accent-rgb),.35)}
+.btn-primary:hover{filter:brightness(1.12);transform:translateY(-1px)}
+.btn-secondary{background:var(--glass-bg);border:1px solid var(--glass-border);color:var(--text-primary);
+  backdrop-filter:blur(10px)}
+.btn-secondary:hover{background:var(--glass-hover);border-color:var(--accent)}
+.btn-danger{background:#c0392b;color:#fff}
+.btn-danger:hover{background:#e74c3c}
+.btn-sm{padding:6px 14px;font-size:12px;border-radius:var(--radius-xs);min-height:32px}
+.btn-lg{padding:15px 36px;font-size:18px;border-radius:24px}
+.btn-gold{background:linear-gradient(135deg,#f7b733,#fc4a1a);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:14px}
+.stat-card{background:var(--glass-bg);backdrop-filter:blur(14px);border-radius:var(--radius);
+  padding:15px 10px;text-align:center;border:1px solid var(--glass-border);transition:var(--transition)}
+.stat-card:hover{transform:translateY(-2px);border-color:rgba(var(--accent-rgb),.3)}
+.stat-value{font-size:calc(28px*var(--fscale));font-weight:800;color:var(--accent);line-height:1.2}
+.stat-label{font-size:12px;color:var(--text-secondary);margin-top:4px}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600}
+input[type="text"],input[type="number"],textarea{background:rgba(0,0,0,.22);border:1px solid var(--border);
+  padding:10px 14px;border-radius:var(--radius-sm);font-size:14px;width:100%;transition:var(--transition);color:var(--text-primary)}
+html[data-theme="light"] input[type="text"],html[data-theme="light"] input[type="number"],html[data-theme="light"] textarea{background:rgba(255,255,255,.75)}
+input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.18)}
+textarea{resize:vertical;min-height:70px}
+select{background:rgba(0,0,0,.22);border:1px solid var(--border);padding:10px 34px 10px 14px;
+  border-radius:var(--radius-sm);font-size:14px;cursor:pointer;transition:var(--transition);
+  appearance:none;color:var(--text-primary);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center}
+html[data-theme="light"] select{background:rgba(255,255,255,.75)}
+select:focus{border-color:var(--accent)}
+input[type="range"]{-webkit-appearance:none;width:100%;height:6px;border-radius:3px;
+  background:var(--border);outline:none;transition:var(--transition)}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;
+  background:var(--accent);cursor:pointer;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+.switch{position:relative;width:46px;height:26px;display:inline-block;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.switch .slider{position:absolute;inset:0;background:var(--border);border-radius:13px;cursor:pointer;transition:var(--transition)}
+.switch .slider::before{content:'';position:absolute;width:20px;height:20px;border-radius:50%;
+  background:#fff;left:3px;top:3px;transition:var(--transition);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.switch input:checked+.slider{background:var(--accent)}
+.switch input:checked+.slider::before{transform:translateX(20px)}
+.progress-bar{height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.progress-bar .fill{height:100%;background:linear-gradient(90deg,var(--accent),#9fd0ff);border-radius:4px;transition:width .5s ease}
+.settings-row{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:12px 0;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.settings-row:last-child{border-bottom:none}
+.sr-left{display:flex;align-items:center;gap:10px}
+.sr-label{font-size:calc(13.5px*var(--fscale))}
+.sr-value{font-size:12.5px;color:var(--text-secondary)}
+.chip-row{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600;background:var(--glass-bg);
+  border:1.5px solid var(--glass-border);transition:var(--transition);min-height:38px}
+.chip:hover{border-color:var(--text-muted)}
+.chip.active{background:rgba(var(--accent-rgb),.2);border-color:var(--accent);color:var(--accent)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.muted{color:var(--text-muted)}
+.empty-tip{text-align:center;color:var(--text-muted);padding:30px 10px;font-size:13px}
+
+/* ================================================================
+   SECTION: toast — 提示与浮动文字
+   ================================================================ */
+#toast-container{position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:999;
+  display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;max-width:92vw}
+.toast{padding:11px 22px;border-radius:var(--radius-sm);font-size:13.5px;font-weight:700;
+  background:var(--glass-bg-strong);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border:1px solid var(--glass-border);color:var(--text-primary);box-shadow:var(--shadow);
+  animation:toastIn .3s ease,toastOut .3s ease 2.4s forwards;pointer-events:auto;
+  white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
+.floating-text{position:fixed;pointer-events:none;z-index:998;font-size:22px;font-weight:800;
+  animation:floatUp 1.4s ease-out forwards;text-shadow:0 2px 8px rgba(0,0,0,.35)}
+
+/* ================================================================
+   SECTION: modal — 弹窗 / 庆祝 / 引导 / ActionSheet
+   ================================================================ */
+.modal-mask{position:fixed;inset:0;background:rgba(5,8,18,.55);backdrop-filter:blur(6px);
+  z-index:900;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-mask.open{display:flex;animation:fadeIn .25s ease}
+.modal{background:var(--glass-bg-strong);backdrop-filter:blur(26px) saturate(1.3);
+  -webkit-backdrop-filter:blur(26px) saturate(1.3);border:1px solid var(--glass-border);
+  border-radius:var(--radius);padding:24px;max-width:460px;width:100%;max-height:82vh;overflow-y:auto;
+  box-shadow:var(--shadow);animation:modalIn .3s cubic-bezier(.2,.9,.3,1.2)}
+.modal h3{font-size:17px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+#celebrate{position:fixed;inset:0;z-index:950;display:none;align-items:center;justify-content:center;
+  flex-direction:column;background:radial-gradient(circle,rgba(20,16,40,.82),rgba(5,5,12,.94));
+  backdrop-filter:blur(8px)}
+#celebrate.open{display:flex;animation:fadeIn .3s ease}
+#celebrate .cb-icon{font-size:84px;animation:cbBounce 1s ease infinite}
+#celebrate .cb-title{font-size:30px;font-weight:900;margin-top:14px;
+  background:linear-gradient(90deg,#FFD700,#ff9d5c,#FFD700);-webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:shine 2s linear infinite;background-size:200% auto}
+#celebrate .cb-desc{color:var(--text-secondary);margin-top:8px;font-size:14px;text-align:center;padding:0 30px}
+#tutorial{position:fixed;inset:0;z-index:960;display:none;align-items:center;justify-content:center;
+  background:rgba(5,8,18,.7);backdrop-filter:blur(8px);padding:20px}
+#tutorial.open{display:flex;animation:fadeIn .3s ease}
+#action-sheet{position:fixed;left:0;right:0;bottom:0;z-index:940;display:none;padding:10px 12px calc(env(safe-area-inset-bottom,10px) + 10px)}
+#action-sheet.open{display:block}
+#action-sheet .sheet-mask{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:-1}
+.sheet-body{background:var(--glass-bg-strong);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border:1px solid var(--glass-border);border-radius:20px;padding:10px;max-height:60vh;overflow-y:auto;
+  animation:sheetUp .3s cubic-bezier(.2,.9,.3,1)}
+.sheet-item{display:flex;align-items:center;gap:12px;width:100%;padding:13px 16px;border-radius:12px;
+  font-size:15px;text-align:left;transition:var(--transition);min-height:48px}
+.sheet-item:active{background:var(--glass-hover)}
+
+/* ================================================================
+   SECTION: nav-mobile — 底部导航
+   ================================================================ */
+.bottom-nav{display:none;background:var(--bg-secondary);backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);border-top:1px solid var(--glass-border);
+  padding:4px 0 env(safe-area-inset-bottom,4px);z-index:20;flex-shrink:0}
+.bottom-nav-inner{display:flex;justify-content:space-around;align-items:center}
+.bnav-btn{display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 10px;
+  border-radius:10px;font-size:10px;color:var(--text-muted);transition:var(--transition);
+  min-width:56px;min-height:44px;justify-content:center}
+.bnav-icon{font-size:20px}
+.bnav-btn.active{color:var(--accent);transform:translateY(-2px)}
+
+/* ================================================================
+   SECTION: page-dashboard — 仪表盘
+   ================================================================ */
+.health-ring-wrap{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.health-ring{position:relative;width:130px;height:130px;flex-shrink:0}
+.health-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.health-ring .hr-num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.health-ring .hr-num b{font-size:30px;font-weight:900}
+.health-ring .hr-num span{font-size:10px;color:var(--text-muted)}
+.suggest-item{display:flex;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);
+  background:rgba(var(--accent-rgb),.07);border:1px solid rgba(var(--accent-rgb),.15);
+  margin-bottom:8px;font-size:13px;line-height:1.5;align-items:flex-start}
+.quest-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.quest-item:last-child{border-bottom:none}
+.quest-info{flex:1;min-width:0}
+.quest-name{font-size:13px;font-weight:600}
+.quest-prog{font-size:11px;color:var(--text-muted);margin-top:3px}
+
+/* ================================================================
+   SECTION: page-release — 情绪释放
+   ================================================================ */
+.release-center{display:flex;flex-direction:column;align-items:center;padding:14px 0}
+.emotion-tags{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:22px;max-width:640px}
+.emotion-tag{padding:9px 18px;border-radius:22px;font-size:13.5px;font-weight:600;
+  background:var(--glass-bg);border:2px solid var(--glass-border);transition:var(--transition);min-height:44px}
+.emotion-tag:hover{border-color:var(--text-muted);transform:translateY(-2px)}
+.emotion-tag.selected{color:#fff;border-color:transparent;box-shadow:0 4px 16px rgba(0,0,0,.3)}
+.release-btn{width:200px;height:200px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),rgba(var(--accent-rgb),.55));color:#fff;
+  font-size:26px;font-weight:900;box-shadow:0 0 46px rgba(var(--accent-rgb),.45),0 10px 30px rgba(0,0,0,.35);
+  transition:transform .15s ease,box-shadow .3s ease;position:relative;overflow:hidden;
+  animation:pulse 3s ease infinite}
+.release-btn:hover{box-shadow:0 0 70px rgba(var(--accent-rgb),.6)}
+.release-btn:active{transform:scale(.92)}
+.release-btn .ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.35);
+  animation:ripple .6s ease-out forwards;pointer-events:none}
+.release-counter{margin-top:22px;text-align:center}
+.release-counter .count{font-size:44px;font-weight:900;color:var(--accent)}
+.release-counter .label{font-size:13px;color:var(--text-secondary)}
+.zen-quote{margin-top:18px;font-size:13.5px;color:var(--text-muted);font-style:italic;
+  text-align:center;max-width:420px;line-height:1.7}
+.heal-pop{position:fixed;z-index:997;font-size:40px;pointer-events:none;animation:healPop 1.6s ease forwards}
+.hotkey-hint{font-size:11px;color:var(--text-muted);margin-top:8px}
+
+/* ================================================================
+   SECTION: page-clicker — 连打挑战
+   ================================================================ */
+.clicker-center{display:flex;flex-direction:column;align-items:center;padding:10px 0}
+.clicker-btn{width:180px;height:180px;border-radius:50%;background:linear-gradient(135deg,#6c5ce7,#a29bfe);
+  color:#fff;font-size:38px;font-weight:900;box-shadow:0 0 44px rgba(108,92,231,.45);
+  transition:transform .1s ease;margin:18px 0}
+.clicker-btn:active{transform:scale(.9)}
+.clicker-stats{display:flex;gap:30px;margin-top:12px}
+.clicker-stat{text-align:center}
+.clicker-stat .val{font-size:30px;font-weight:900}
+.clicker-stat .lbl{font-size:11px;color:var(--text-secondary)}
+.clicker-rating{font-size:14px;color:var(--text-secondary);margin-top:14px;min-height:24px;text-align:center}
+
+/* ================================================================
+   SECTION: page-journal — 情绪日志
+   ================================================================ */
+.mood-scale{display:flex;gap:10px;justify-content:center;margin:8px 0 14px;flex-wrap:wrap}
+.mood-opt{width:56px;height:56px;border-radius:16px;font-size:26px;display:flex;align-items:center;
+  justify-content:center;background:var(--glass-bg);border:2px solid var(--glass-border);
+  transition:var(--transition)}
+.mood-opt:hover{transform:translateY(-3px) scale(1.06)}
+.mood-opt.selected{border-color:var(--accent);background:rgba(var(--accent-rgb),.2);
+  box-shadow:0 0 16px rgba(var(--accent-rgb),.4);transform:scale(1.08)}
+.jr-photo-preview{max-width:100%;max-height:140px;border-radius:var(--radius-sm);margin-top:8px;display:none}
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal-hd{font-size:11px;color:var(--text-muted);text-align:center;padding:4px 0}
+.cal-cell{aspect-ratio:1;border-radius:10px;background:var(--glass-bg);border:1px solid var(--glass-border);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12px;
+  color:var(--text-secondary);position:relative;transition:var(--transition);cursor:default;min-height:40px}
+.cal-cell.today{border-color:var(--accent);color:var(--accent);font-weight:800}
+.cal-cell .cal-mood{font-size:15px;line-height:1}
+.cal-cell.has{color:var(--text-primary)}
+.jr-item{display:flex;gap:12px;padding:12px;border-radius:var(--radius-sm);background:var(--glass-bg);
+  border:1px solid var(--glass-border);margin-bottom:10px;align-items:flex-start}
+.jr-mood{font-size:26px;flex-shrink:0}
+.jr-body{flex:1;min-width:0}
+.jr-note{font-size:13px;line-height:1.55;word-break:break-word}
+.jr-meta{font-size:11px;color:var(--text-muted);margin-top:4px}
+.jr-photo{max-width:120px;border-radius:8px;margin-top:6px;display:block}
+
+/* ================================================================
+   SECTION: page-breath / page-meditate — 呼吸与冥想
+   ================================================================ */
+.breath-center,.meditate-center{display:flex;flex-direction:column;align-items:center;padding:8px 0}
+.breath-circle-wrap{position:relative;width:250px;height:250px;margin:14px 0}
+.breath-circle{width:100%;height:100%;border-radius:50%;
+  background:radial-gradient(circle,rgba(var(--accent-rgb),.34),rgba(var(--accent-rgb),.05));
+  border:3px solid var(--accent);display:flex;align-items:center;justify-content:center;
+  transform:scale(.45);box-shadow:0 0 60px rgba(var(--accent-rgb),.3)}
+.breath-text{font-size:22px;font-weight:800;color:var(--text-primary)}
+.breath-ring{position:absolute;inset:-9px;border-radius:50%;border:1px solid rgba(var(--accent-rgb),.22);pointer-events:none}
+.breath-ring:nth-child(2){inset:-18px;border-color:rgba(var(--accent-rgb),.1)}
+.scene-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;width:100%;max-width:560px}
+.scene-item{padding:16px 10px;border-radius:var(--radius);border:2px solid var(--glass-border);
+  background:var(--glass-bg);text-align:center;transition:var(--transition);cursor:pointer}
+.scene-item:hover{transform:translateY(-2px)}
+.scene-item.active{border-color:var(--accent);background:rgba(var(--accent-rgb),.14);
+  box-shadow:0 0 18px rgba(var(--accent-rgb),.25)}
+.scene-icon{font-size:30px}
+.scene-name{font-size:13px;font-weight:700;margin-top:6px}
+.scene-desc{font-size:11px;color:var(--text-muted);margin-top:3px}
+.med-stage{position:relative;width:230px;height:230px;margin:16px 0;display:flex;align-items:center;justify-content:center}
+.med-stage svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.med-inner{text-align:center;z-index:1}
+.med-time{font-size:40px;font-weight:900}
+.med-caption{font-size:14px;color:var(--text-secondary);margin-top:8px;min-height:40px;max-width:420px;
+  line-height:1.6;text-align:center}
+
+/* ================================================================
+   SECTION: page-sound — 音频疗愈
+   ================================================================ */
+.mixer-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.mixer-item{background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:var(--radius);
+  padding:14px;text-align:center;transition:var(--transition)}
+.mixer-item.on{border-color:var(--accent);box-shadow:0 0 16px rgba(var(--accent-rgb),.25)}
+.mixer-icon{font-size:26px}
+.mixer-name{font-size:12.5px;font-weight:700;margin:6px 0 8px}
+#viz-canvas{width:100%;height:90px;border-radius:var(--radius-sm);background:rgba(0,0,0,.25)}
+html[data-theme="light"] #viz-canvas{background:rgba(255,255,255,.5)}
+
+/* ================================================================
+   SECTION: page-pomo — 番茄钟
+   ================================================================ */
+.pomo-center{display:flex;flex-direction:column;align-items:center;padding:8px 0}
+.pomo-ring-wrap{position:relative;width:235px;height:235px;margin:14px 0}
+.pomo-ring-wrap svg{width:100%;height:100%;transform:rotate(-90deg)}
+.pomo-time{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.pomo-time .time{font-size:40px;font-weight:900}
+.pomo-time .status{font-size:13px;color:var(--text-secondary);margin-top:4px}
+.pomo-controls{display:flex;gap:10px;margin:10px 0;flex-wrap:wrap;justify-content:center}
+.pomo-hist-item{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;
+  border-radius:var(--radius-xs);background:var(--glass-bg);border:1px solid var(--glass-border);
+  margin-bottom:8px;font-size:12.5px}
+
+/* ================================================================
+   SECTION: page-stats — 统计
+   ================================================================ */
+.chart-wrap{background:var(--glass-bg);backdrop-filter:blur(14px);border-radius:var(--radius);
+  padding:16px;margin-bottom:14px;border:1px solid var(--glass-border)}
+.chart-title{font-size:13.5px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.chart-svg{width:100%;height:auto;display:block}
+.summary-text{font-size:13px;line-height:1.8;color:var(--text-secondary);background:rgba(var(--accent-rgb),.06);
+  border-left:3px solid var(--accent);padding:12px 14px;border-radius:0 var(--radius-sm) var(--radius-sm) 0}
+
+/* ================================================================
+   SECTION: page-achv — 成就殿堂
+   ================================================================ */
+.tier-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.achv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.achv-badge{background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:var(--radius);
+  padding:16px 10px;text-align:center;transition:var(--transition);position:relative;overflow:hidden}
+.achv-badge.unlocked{border-color:var(--tier-color,#FFD700);box-shadow:0 0 18px color-mix(in srgb,var(--tier-color,#FFD700) 30%,transparent)}
+.achv-badge:hover{transform:translateY(-3px)}
+.achv-badge .ab-icon{font-size:32px}
+.achv-badge .ab-name{font-size:12.5px;font-weight:700;margin-top:8px}
+.achv-badge .ab-desc{font-size:10.5px;color:var(--text-muted);margin-top:4px;line-height:1.4}
+.achv-badge .ab-tier{display:inline-block;font-size:9.5px;padding:2px 8px;border-radius:10px;margin-top:8px;
+  font-weight:800;color:#fff;background:var(--tier-color,#888)}
+.achv-badge.locked{opacity:.55;filter:grayscale(.6)}
+
+/* ================================================================
+   SECTION: page-social — 禅意社区
+   ================================================================ */
+.wall-card{background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:var(--radius);
+  padding:15px;margin-bottom:12px;animation:fadeIn .4s ease}
+.wall-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.wall-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:18px;background:linear-gradient(135deg,rgba(var(--accent-rgb),.5),rgba(var(--accent-rgb),.15))}
+.wall-name{font-size:13px;font-weight:700}
+.wall-time{font-size:11px;color:var(--text-muted)}
+.wall-text{font-size:13.5px;line-height:1.65}
+.wall-actions{display:flex;gap:14px;margin-top:10px}
+.wall-act{font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:4px;transition:var(--transition)}
+.wall-act:hover{color:var(--accent)}
+.rank-row{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--radius-sm);
+  background:var(--glass-bg);border:1px solid var(--glass-border);margin-bottom:8px;font-size:13px}
+.rank-row.me{border-color:var(--accent);background:rgba(var(--accent-rgb),.12)}
+.rank-medal{width:30px;text-align:center;font-weight:900}
+
+/* ================================================================
+   SECTION: page-report / page-settings
+   ================================================================ */
+.report-preview{background:var(--glass-bg);border-radius:var(--radius);padding:18px;border:1px solid var(--glass-border);
+  min-height:280px;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+#report-card{background:var(--bg-primary);border-radius:14px;padding:22px;width:100%;max-width:560px;border:1px solid var(--border)}
+.skin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.skin-item{padding:12px;border-radius:var(--radius-sm);border:2px solid var(--glass-border);cursor:pointer;
+  transition:var(--transition);text-align:center;position:relative;background:var(--glass-bg)}
+.skin-item:hover{border-color:var(--text-muted);transform:translateY(-2px)}
+.skin-item.active{border-color:var(--accent);box-shadow:0 0 14px rgba(var(--accent-rgb),.3)}
+.skin-item.locked{opacity:.6}
+.skin-dot{width:22px;height:22px;border-radius:50%;margin:0 auto 6px;box-shadow:0 0 10px currentColor}
+.skin-name{font-size:12px;font-weight:700}
+.skin-cost{font-size:10px;color:var(--gold);margin-top:3px}
+.skin-lock{position:absolute;top:6px;right:8px;font-size:12px}
+.sound-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
+.sound-item{padding:10px;border-radius:var(--radius-sm);border:2px solid var(--glass-border);cursor:pointer;
+  transition:var(--transition);text-align:center;font-size:12.5px;background:var(--glass-bg)}
+.sound-item:hover{border-color:var(--text-muted)}
+.sound-item.active{border-color:var(--accent);background:rgba(var(--accent-rgb),.12)}
+.sound-item.locked{opacity:.6}
+.hotkey-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);gap:10px}
+.hotkey-key{font-family:Consolas,monospace;font-size:12px;padding:4px 10px;border-radius:6px;
+  background:rgba(0,0,0,.3);border:1px solid var(--border)}
+html[data-theme="light"] .hotkey-key{background:rgba(0,0,0,.06)}
+
+/* ================================================================
+   SECTION: pet — 情绪宠物
+   ================================================================ */
+.pet-widget{display:flex;align-items:center;gap:14px;cursor:pointer}
+.pet-avatar{font-size:44px;transition:transform .3s ease;filter:drop-shadow(0 4px 10px rgba(0,0,0,.3))}
+.pet-widget:hover .pet-avatar{transform:scale(1.15) rotate(-6deg)}
+.pet-name{font-size:13px;font-weight:700}
+.pet-sub{font-size:11px;color:var(--text-muted);margin-top:2px}
+
+/* ================================================================
+   SECTION: keyframes
+   ================================================================ */
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes pageIn{from{opacity:0;transform:translateY(14px) scale(.995)}to{opacity:1;transform:none}}
+@keyframes toastIn{from{opacity:0;transform:translateY(-18px)}to{opacity:1;transform:none}}
+@keyframes toastOut{from{opacity:1}to{opacity:0;transform:translateY(-18px)}}
+@keyframes modalIn{from{opacity:0;transform:scale(.88) translateY(16px)}to{opacity:1;transform:none}}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:none}}
+@keyframes ripple{from{width:0;height:0;opacity:.5}to{width:320px;height:320px;opacity:0;margin-left:-160px;margin-top:-160px}}
+@keyframes floatUp{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-80px) scale(.7)}}
+@keyframes healPop{0%{opacity:0;transform:scale(.4)}20%{opacity:1;transform:scale(1.2)}60%{opacity:1;transform:scale(1)}100%{opacity:0;transform:translateY(-70px) scale(.9)}}
+@keyframes pulse{0%,100%{box-shadow:0 0 30px rgba(var(--accent-rgb),.35)}50%{box-shadow:0 0 60px rgba(var(--accent-rgb),.6)}}
+@keyframes comboPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+@keyframes cbBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+@keyframes shine{to{background-position:200% center}}
+@keyframes shake{0%,100%{transform:translateX(0)}10%{transform:translateX(-6px) translateY(2px)}30%{transform:translateX(5px) translateY(-2px)}50%{transform:translateX(-4px) translateY(1px)}70%{transform:translateX(3px) translateY(-1px)}90%{transform:translateX(-2px)}}
+.shake{animation:shake .3s ease}
+
+/* ================================================================
+   SECTION: responsive — 响应式
+   ================================================================ */
+@media(max-width:820px){
+  .sidebar{display:none}
+  .bottom-nav{display:block}
+  .page-container{padding:14px 12px 30px}
+  .page-title{font-size:calc(20px*var(--fscale))}
+  .grid-2{grid-template-columns:1fr}
+  .release-btn{width:165px;height:165px;font-size:22px}
+  .clicker-btn{width:150px;height:150px;font-size:30px}
+  .breath-circle-wrap{width:215px;height:215px}
+  .topbar{padding:8px 10px;gap:6px}
+  .tb-level{min-width:110px}
+}
+@media(max-width:480px){
+  .stat-grid{grid-template-columns:repeat(2,1fr)}
+  .clicker-stats{gap:18px}
+  .achv-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(orientation:landscape) and (max-height:520px){
+  .release-btn{width:130px;height:130px;font-size:18px}
+  .breath-circle-wrap{width:170px;height:170px}
+  .page-container{padding:10px 16px}
+}
+</style>
+</head>
+<body>
+<!-- SECTION: canvases -->
+<canvas id="bg-canvas"></canvas>
+<canvas id="particle-canvas"></canvas>
+<div id="toast-container"></div>
+
+<!-- SECTION: celebrate — 成就全屏庆祝 -->
+<div id="celebrate">
+  <div class="cb-icon" id="cb-icon">🏆</div>
+  <div class="cb-title" id="cb-title"></div>
+  <div class="cb-desc" id="cb-desc"></div>
+  <button class="btn btn-gold" style="margin-top:22px" onclick="App.closeCelebrate()" data-i18n="nice">太棒了！</button>
+</div>
+
+<!-- SECTION: tutorial — 新手引导 -->
+<div id="tutorial">
+  <div class="modal" style="max-width:420px;text-align:center">
+    <div style="font-size:54px" id="tut-icon">🧘</div>
+    <h3 style="justify-content:center" id="tut-title"></h3>
+    <p style="font-size:13.5px;color:var(--text-secondary);line-height:1.8" id="tut-text"></p>
+    <div style="display:flex;gap:6px;justify-content:center;margin:16px 0" id="tut-dots"></div>
+    <div style="display:flex;gap:10px;justify-content:center">
+      <button class="btn btn-secondary btn-sm" onclick="Tutorial.skip()" data-i18n="skip">跳过</button>
+      <button class="btn btn-primary btn-sm" id="tut-next" onclick="Tutorial.next()">下一步</button>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION: action-sheet — 移动端更多菜单 -->
+<div id="action-sheet">
+  <div class="sheet-mask" onclick="App.closeSheet()"></div>
+  <div class="sheet-body" id="sheet-body"></div>
+</div>
+
+<!-- SECTION: generic-modal — 通用弹窗 -->
+<div class="modal-mask" id="modal-mask">
+  <div class="modal" id="modal-body"></div>
+</div>
+
+<!-- ================================================================
+     SECTION: app — 应用骨架
+     ================================================================ -->
+<div id="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-icon">🧘</span>
+      <div class="logo-text">ZenClicker Pro</div>
+      <div class="logo-ver">v6.0 · 数字疗愈工作台</div>
+    </div>
+    <div class="sidebar-divider"></div>
+    <nav class="sidebar-nav" id="sidebar-nav"></nav>
+    <div class="sidebar-footer"><span class="badge" id="achv-badge">🏅 0/36</span></div>
+  </aside>
+
+  <div class="main-content" id="main-content">
+    <!-- SECTION: topbar -->
+    <div class="topbar">
+      <div class="tb-level">
+        <span class="tb-level-badge" id="tb-level-badge">Lv.1 初心者</span>
+        <div class="tb-xp-track"><div class="tb-xp-fill" id="tb-xp-fill"></div></div>
+      </div>
+      <div class="tb-item" title="能量">⚡ <span id="tb-energy">0</span></div>
+      <div class="tb-item" title="连续天数">🔥 <span id="tb-streak">0</span> 天</div>
+      <div class="tb-item tb-combo" id="tb-combo">🔗 连击 x<span id="tb-combo-n">2</span></div>
+    </div>
+
+    <div class="page-container" id="page-container">
+      <!-- ====== SECTION: page-dashboard ====== -->
+      <section class="page active" id="page-dashboard">
+        <div class="page-title">🏠 <span data-i18n="nav_dash">今日总览</span></div>
+        <div class="page-subtitle" data-i18n="dash_sub">一眼看清情绪状态，开启疗愈的一天</div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">💗 <span data-i18n="health_idx">情绪健康指数</span></div>
+            <div class="health-ring-wrap">
+              <div class="health-ring">
+                <svg viewBox="0 0 130 130">
+                  <circle cx="65" cy="65" r="56" fill="none" stroke="var(--border)" stroke-width="10"/>
+                  <circle id="health-ring-circle" cx="65" cy="65" r="56" fill="none" stroke="var(--accent)" stroke-width="10" stroke-linecap="round" stroke-dasharray="351.86" stroke-dashoffset="351.86"/>
+                </svg>
+                <div class="hr-num"><b id="health-score">--</b><span data-i18n="score">分</span></div>
+              </div>
+              <div style="flex:1;min-width:180px">
+                <div id="health-breakdown" style="font-size:12.5px;color:var(--text-secondary);line-height:2"></div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">📌 <span data-i18n="today_overview">今日概览</span></div>
+            <div class="stat-grid" id="dash-stats" style="margin-bottom:0"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">🐾 <span data-i18n="my_pet">情绪宠物</span></div>
+          <div class="pet-widget" onclick="App.petInteract()">
+            <div class="pet-avatar" id="pet-avatar">🥚</div>
+            <div style="flex:1;min-width:0">
+              <div class="pet-name" id="pet-name">未孵化的蛋</div>
+              <div class="pet-sub" id="pet-sub">释放情绪就能喂养小宠物</div>
+              <div class="progress-bar" style="margin-top:6px;max-width:240px"><div class="fill" id="pet-xp-fill" style="width:0%"></div></div>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();App.petFeed()">🍬 <span data-i18n="feed">喂食</span></button>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">✅ <span data-i18n="daily_quests">每日任务</span> <span class="muted" id="quest-summary" style="font-weight:400;font-size:11px;margin-left:auto"></span></div>
+            <div id="quest-list"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">💡 <span data-i18n="suggestions">建议与提醒</span></div>
+            <div id="suggest-list"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">📈 <span data-i18n="week_mood">近 7 天心情曲线</span></div>
+          <div id="dash-mood-chart"></div>
+        </div>
+      </section>
+
+      <!-- ====== SECTION: page-release ====== -->
+      <section class="page" id="page-release">
+        <div class="release-center">
+          <div class="page-title">💥 <span data-i18n="nav_release">情绪释放</span></div>
+          <div class="page-subtitle" data-i18n="release_sub">选择情绪点击释放，快速连点触发连击加成</div>
+          <div class="emotion-tags" id="emotion-tags"></div>
+          <button style="font-size:12px;color:var(--text-muted);margin-bottom:14px" onclick="App.showCustomEmotion()">＋ <span data-i18n="custom_emotion">自定义情绪标签</span></button>
+          <button class="release-btn" id="release-btn" onclick="App.onRelease()" data-primary-action>✨<br><span data-i18n="release">释放</span></button>
+          <div class="hotkey-hint" id="release-hotkey-hint"></div>
+          <div class="release-counter">
+            <div class="count" id="release-count">0</div>
+            <div class="label" data-i18n="total_releases">累计释放次数</div>
+          </div>
+          <div class="zen-quote" id="zen-quote"></div>
+        </div>
+      </section>
+
+      <!-- ====== SECTION: page-clicker ====== -->
+      <section class="page" id="page-clicker">
+        <div class="clicker-center">
+          <div class="page-title">⚡ <span data-i18n="nav_clicker">连打挑战</span></div>
+          <div class="page-subtitle" data-i18n="clicker_sub">10 秒疯狂点击，成绩将计入排行榜</div>
+          <button class="clicker-btn" id="clicker-btn" onclick="App.onClickerClick()">👆</button>
+          <div class="clicker-stats">
+            <div class="clicker-stat"><div class="val" id="clicker-count" style="color:#a29bfe">0</div><div class="lbl" data-i18n="clicks">点击数</div></div>
+            <div class="clicker-stat"><div class="val" id="clicker-time" style="color:#FF6B6B">10</div><div class="lbl" data-i18n="sec_left">剩余秒数</div></div>
+            <div class="clicker-stat"><div class="val" id="clicker-best" style="color:#FFD700">0.0</div><div class="lbl" data-i18n="best_cps">最佳CPS</div></div>
+          </div>
+          <div class="clicker-rating" id="clicker-rating">点击按钮开始挑战</div>
+        </div>
+      </section>
+
+      <!-- ====== SECTION: page-journal ====== -->
+      <section class="page" id="page-journal">
+        <div class="page-title">📔 <span data-i18n="nav_journal">情绪日志</span></div>
+        <div class="page-subtitle" data-i18n="journal_sub">记录当下的心情，支持文字与照片</div>
+        <div class="card">
+          <div class="card-title">✍️ <span data-i18n="new_entry">新建心情</span></div>
+          <div style="margin-bottom:6px;font-size:12.5px;color:var(--text-secondary)" data-i18n="how_feel">现在感觉如何？</div>
+          <div class="mood-scale" id="mood-scale"></div>
+          <textarea id="jr-note" data-i18n-ph="jr_ph" placeholder="写下你的想法…直接描述心情还能智能归类"></textarea>
+          <div style="display:flex;gap:10px;margin-top:10px;align-items:center;flex-wrap:wrap">
+            <label class="btn btn-secondary btn-sm" style="cursor:pointer">📷 <span data-i18n="add_photo">添加照片</span>
+              <input type="file" id="jr-photo" accept="image/*" style="display:none" onchange="App.onJournalPhoto(this)">
+            </label>
+            <span id="jr-photo-name" class="muted" style="font-size:11px"></span>
+            <div style="flex:1"></div>
+            <button class="btn btn-primary" onclick="App.saveJournal()" data-primary-action>💾 <span data-i18n="save_entry">保存</span></button>
+          </div>
+          <img class="jr-photo-preview" id="jr-photo-preview" alt="预览">
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">🗓️ <span data-i18n="mood_calendar">情绪日历</span>
+              <span style="flex:1"></span>
+              <button class="btn btn-secondary btn-sm" onclick="App.calMove(-1)">‹</button>
+              <span id="cal-title" style="font-size:12px;font-weight:700;min-width:76px;text-align:center"></span>
+              <button class="btn btn-secondary btn-sm" onclick="App.calMove(1)">›</button>
+            </div>
+            <div class="calendar" id="calendar"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">📈 <span data-i18n="mood_trend">心情趋势</span></div>
+            <div id="mood-trend-chart"></div>
+            <div class="summary-text" id="journal-summary" style="margin-top:10px"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">🗒️ <span data-i18n="recent_entries">最近记录</span></div>
+          <div id="journal-list"></div>
+        </div>
+      </section>
+
+      <!-- ====== SECTION: page-breath ====== -->
+      <section class="page" id="page-breath">
+        <div class="breath-center">
+          <div class="page-title">🌬️ <span data-i18n="nav_breath">呼吸练习</span></div>
+          <div class="page-subtitle" data-i18n="breath_sub">跟随圆圈的节奏，慢慢呼吸</div>
+          <div class="breath-circle-wrap">
+            <div class="breath-ring"></div>
+            <div class="breath-ring"></div>
+            <div class="breath-circle" id="breath-circle"><span class="breath-text" id="breath-text">准备开始</span></div>
+          </div>
+          <div style="display:flex;gap:10px;margin:12px 0;flex-wrap:wrap;justify-content:center">
+            <button class="btn btn-primary" id="breath-start-btn" onclick="App.toggleBreath()" data-primary-action>▶ <span data-i18n="start_breath">开始呼吸</span></button>
+            <button class="btn btn-secondary" onclick="App.resetBreath()">⟲ <span data-i18n="reset">重置</span></button>
+          </div>
+          <div class="card" style="width:100%;max-width:460px">
+            <div class="settings-row">
+              <span class="sr-label" data-i18n="breath_pattern">呼吸模式</span>
+              <select id="breath-pattern" onchange="App.onBreathPatternChange()" style="width:170px">
+                <option value="4-7-8">4-7-8 助眠</option>
+                <option value="box">方块呼吸</option>
+                <option value="calm">平静 5-5</option>
+              </select>
+            </div>
+            <div class="settings-row">
+              <span class="sr-label" data-i18n="cycles">循环次数</span>
+              <div style="display:flex;align-items:center;gap:10px">
+                <input type="range" id="breath-cycles" min="1" max="10" value="4" oninput="App.onBreathCyclesChange()" style="width:120px">
+                <span id="breath-cycles-label" style="font-size:13px;min-width:34px">4 次</span>
+              </div>
+            </div>
+            <div class="settings-row">
+              <span class="sr-label" data-i18n="voice_guide">语音引导</span>
+              <label class="switch"><input type="checkbox" id="breath-voice" onchange="App.onBreathVoiceToggle()"><span class="slider"></span></label>
+            </div>
+            <div class="settings-row">
+              <span class="sr-label" data-i18n="ambient">环境音</span>
+              <select id="breath-ambient" onchange="App.onBreathAmbientChange()" style="width:170px"></select>
+            </div>
+            <div style="text-align:center;margin-top:8px"><span id="breath-progress" style="font-size:12px;color:var(--text-muted)"></span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====== SECTION: page-meditate ====== -->
+      <section class="page" id="page-meditate">
+        <div class="meditate-center">
+          <div class="page-title">🧘 <span data-i18n="nav_meditate">智能冥想</span></div>
+          <div class="page-subtitle" data-i18n="med_sub">选择适合当前状态的场景，语音带你进入正念</div>
+          <div class="scene-grid" id="med-scenes"></div>
+          <div class="card" style="width:100%;max-width:560px;margin-top:14px">
+            <div class="settings-row">
+              <span class="sr-label" data-i18n="med_dur">冥想时长</span>
+              <div class="chip-row" id="med-dur-chips"></div>
+            </div>
+            <div class="settings-row">
+              <span class="sr-label" data-i18n="ambient">环境音</span>
+              <select id="med-ambient" style="width:160px"></select>
+            </div>
+            <div class="settings-row">
+              <span class="sr-label" data-i18n="voice_guide">语音引导</span>
+              <label class="switch"><input type="checkbox" id="med-voice" checked onchange="App.medVoiceToggle()"><span class="slider"></span></label>
+            </div>
+          </div>
+          <div class="med-stage" id="med-stage" style="display:none">
+            <svg viewBox="0 0 230 230">
+              <circle cx="115" cy="115" r="104" fill="none" stroke="var(--border)" stroke-width="9"/>
+              <circle id="med-ring-circle" cx="115" cy="115" r="104" fill="none" stroke="var(--accent)" stroke-width="9" stroke-linecap="round" stroke-dasharray="653.45" stroke-dashoffset="653.45"/>
+            </svg>
+            <div class="med-inner">
+              <div class="med-time" id="med-time">00:00</div>
+              <div style="font-size:11px;color:var(--text-muted)" id="med-scene-label"></div>
+            </div>
+          </div>
+          <div class="med-caption" id="med-caption"></div>
+          <div style="display:flex;gap:10px;margin-top:8px">
+            <button class="btn btn-primary btn-lg" id="med-start-btn" onclick="App.toggleMeditate()" data-primary-action>▶ <span data-i18n="start_meditate">开始冥想</span></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====== SECTION: page-sound ====== -->
+      <section class="page" id="page-sound">
+        <div class="page-title">🎧 <span data-i18n="nav_sound">音频疗愈</span></div>
+        <div class="page-subtitle" data-i18n="sound_sub">混合多种环境音，搭配双耳节拍深度放松</div>
+        <div class="card">
+          <div class="card-title">🎚️ <span data-i18n="mixer">环境音混音台</span></div>
+          <div class="mixer-grid" id="mixer-grid"></div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">🧠 <span data-i18n="binaural">双耳节拍</span></div>
+            <div class="chip-row" id="binaural-chips" style="margin-bottom:12px"></div>
+            <div class="settings-row">
+              <span class="sr-label" data-i18n="base_freq">基础频率</span>
+              <div style="display:flex;align-items:center;gap:8px;flex:1;max-width:230px">
+                <input type="range" id="bin-base" min="100" max="400" value="200" oninput="App.onBinBase()">
+                <span id="bin-base-label" style="font-size:12px;min-width:56px">200 Hz</span>
+              </div>
+            </div>
+            <div class="settings-row">
+              <span class="sr-label" data-i18n="bin_on">启用节拍</span>
+              <label class="switch"><input type="checkbox" id="bin-on" onchange="App.onBinToggle()"><span class="slider"></span></label>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">📊 <span data-i18n="viz">音频可视化</span> · <span data-i18n="sleep_timer">定时关闭</span></div>
+            <canvas id="viz-canvas" width="600" height="90"></canvas>
+            <div class="chip-row" id="timer-chips" style="margin-top:12px"></div>
+            <div class="muted" id="timer-status" style="font-size:11.5px;margin-top:8px"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====== SECTION: page-pomodoro ====== -->
+      <section class="page" id="page-pomodoro">
+        <div class="pomo-center">
+          <div class="page-title">🍅 <span data-i18n="nav_pomodoro">高级番茄钟</span></div>
+          <div class="page-subtitle" data-i18n="pomo_sub">专注工作，完成后会建议你放松一下</div>
+          <div class="pomo-ring-wrap">
+            <svg viewBox="0 0 235 235">
+              <circle cx="117.5" cy="117.5" r="102" fill="none" stroke="var(--border)" stroke-width="12"/>
+              <circle cx="117.5" cy="117.5" r="102" fill="none" stroke="var(--accent)" stroke-width="12" stroke-linecap="round" stroke-dasharray="640.88" stroke-dashoffset="640.88" id="pomo-ring-circle"/>
+            </svg>
+            <div class="pomo-time">
+              <div class="time" id="pomo-time">25:00</div>
+              <div class="status" id="pomo-status">准备开始</div>
+            </div>
+          </div>
+          <div class="pomo-controls">
+            <button class="btn btn-primary" id="pomo-start-btn" onclick="App.togglePomo()" data-primary-action>▶ <span data-i18n="start">开始</span></button>
+            <button class="btn btn-secondary" onclick="App.resetPomo()">⟲ <span data-i18n="reset">重置</span></button>
+          </div>
+          <div style="font-size:13px;color:var(--text-secondary);margin:4px 0" id="pomo-completed"></div>
+          <div class="grid-2" style="width:100%;max-width:660px;margin-top:10px">
+            <div class="card">
+              <div class="card-title">⚙️ <span data-i18n="pomo_settings">计时设置</span></div>
+              <div class="settings-row">
+                <span class="sr-label" data-i18n="work_len">工作时长</span>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <input type="range" id="pomo-work" min="5" max="60" value="25" oninput="App.onPomoWorkChange()" style="width:110px">
+                  <span id="pomo-work-label" style="font-size:12.5px;min-width:46px">25分钟</span>
+                </div>
+              </div>
+              <div class="settings-row">
+                <span class="sr-label" data-i18n="break_len">休息时长</span>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <input type="range" id="pomo-break" min="1" max="20" value="5" oninput="App.onPomoBreakChange()" style="width:110px">
+                  <span id="pomo-break-label" style="font-size:12.5px;min-width:46px">5分钟</span>
+                </div>
+              </div>
+              <div class="settings-row">
+                <span class="sr-label" data-i18n="daily_goal">每日目标</span>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <input type="range" id="pomo-goal" min="1" max="12" value="4" oninput="App.onPomoGoalChange()" style="width:110px">
+                  <span id="pomo-goal-label" style="font-size:12.5px;min-width:46px">4 个</span>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">📊 <span data-i18n="focus_analysis">专注度分析</span></div>
+              <div id="pomo-week-chart"></div>
+              <div class="summary-text" id="pomo-focus-summary" style="margin-top:10px"></div>
+            </div>
+          </div>
+          <div class="card" style="width:100%;max-width:660px">
+            <div class="card-title">🗂️ <span data-i18n="focus_history">番茄历史</span> <span class="muted" id="pomo-total-hist" style="font-weight:400;font-size:11px;margin-left:auto"></span></div>
+            <div id="pomo-history"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====== SECTION: page-stats ====== -->
+      <section class="page" id="page-stats">
+        <div class="page-title">📊 <span data-i18n="nav_stats">数据统计</span></div>
+        <div class="page-subtitle" data-i18n="stats_sub">查看你的情绪与专注记录</div>
+        <div class="stat-grid" id="stats-cards"></div>
+        <div class="summary-text" id="stats-summary" style="margin-bottom:14px"></div>
+        <div class="chart-wrap">
+          <div class="chart-title">📈 <span data-i18n="trend7">7天释放趋势</span> <span class="muted" id="week-compare" style="font-weight:400;font-size:11px;margin-left:auto"></span></div>
+          <div id="chart-daily"></div>
+        </div>
+        <div class="grid-2">
+          <div class="chart-wrap">
+            <div class="chart-title">🎭 <span data-i18n="emo_dist">情绪分布</span></div>
+            <div id="chart-emo"></div>
+          </div>
+          <div class="chart-wrap">
+            <div class="chart-title">🕐 <span data-i18n="hour_dist">24小时分布</span></div>
+            <div id="chart-hour"></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap">
+          <button class="btn btn-secondary" onclick="App.refreshStats()">🔄 <span data-i18n="refresh">刷新数据</span></button>
+          <button class="btn btn-secondary" onclick="App.exportCSV()">📤 CSV</button>
+          <button class="btn btn-secondary" onclick="App.exportJSON()">💾 <span data-i18n="backup">备份</span></button>
+        </div>
+      </section>
+
+      <!-- ====== SECTION: page-achv ====== -->
+      <section class="page" id="page-achievements">
+        <div class="page-title">🏆 <span data-i18n="nav_achv">成就殿堂</span></div>
+        <div class="page-subtitle" id="achv-summary"></div>
+        <div class="tier-tabs" id="tier-tabs"></div>
+        <div class="achv-grid" id="achv-list"></div>
+      </section>
+
+      <!-- ====== SECTION: page-social ====== -->
+      <section class="page" id="page-social">
+        <div class="page-title">🌸 <span data-i18n="nav_social">禅意社区</span></div>
+        <div class="page-subtitle" data-i18n="social_sub">本地体验版：分享内容仅保存在你的浏览器中</div>
+        <div class="card" style="text-align:center">
+          <div style="font-size:12px;color:var(--text-muted)" data-i18n="daily_quote">每日禅语</div>
+          <div style="font-size:16px;font-weight:700;margin-top:8px;line-height:1.7" id="social-quote"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">🎯 <span data-i18n="challenges">打卡挑战</span></div>
+          <div class="chip-row" id="challenge-chips" style="margin-bottom:12px"></div>
+          <div id="challenge-status" style="font-size:13px;line-height:1.8"></div>
+          <button class="btn btn-primary btn-sm" style="margin-top:10px" id="checkin-btn" onclick="App.doCheckin()">✅ <span data-i18n="checkin">今日打卡</span></button>
+        </div>
+        <div class="card">
+          <div class="card-title">💬 <span data-i18n="share_wall">匿名分享墙</span></div>
+          <textarea id="wall-input" data-i18n-ph="wall_ph" placeholder="匿名分享此刻的心情…" style="min-height:56px"></textarea>
+          <div style="display:flex;justify-content:flex-end;margin-top:8px">
+            <button class="btn btn-primary btn-sm" onclick="App.postWall()">🕊️ <span data-i18n="publish">发布</span></button>
+          </div>
+        </div>
+        <div id="wall-list"></div>
+        <div class="card">
+          <div class="card-title">🏅 <span data-i18n="rank">CPS 排行榜</span> <span class="muted" style="font-weight:400;font-size:11px;margin-left:auto" data-i18n="rank_note">本地示例数据</span></div>
+          <div id="rank-list"></div>
+        </div>
+      </section>
+
+      <!-- ====== SECTION: page-report ====== -->
+      <section class="page" id="page-report">
+        <div class="page-title">📋 <span data-i18n="nav_report">情绪周报</span></div>
+        <div class="page-subtitle" data-i18n="report_sub">生成你的专属数据卡片</div>
+        <div class="report-preview" id="report-preview">
+          <div class="muted" id="report-placeholder" style="font-size:14px">点击下方按钮生成周报</div>
+          <div id="report-card" style="display:none"></div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="App.generateReport()" data-primary-action>🔄 <span data-i18n="generate">生成周报</span></button>
+          <button class="btn btn-secondary" id="report-save-btn" onclick="App.saveReport()" disabled>💾 <span data-i18n="save_img">保存图片</span></button>
+          <button class="btn btn-secondary" id="report-copy-btn" onclick="App.copyReport()" disabled>📋 <span data-i18n="copy_img">复制图片</span></button>
+        </div>
+        <div class="card" style="margin-top:14px">
+          <div class="card-title">🤖 <span data-i18n="ai_report">AI 情绪洞察</span></div>
+          <div id="ai-insight" style="font-size:13px;line-height:1.9;color:var(--text-secondary)"></div>
+        </div>
+      </section>
+
+      <!-- ====== SECTION: page-settings ====== -->
+      <section class="page" id="page-settings">
+        <div class="page-title">⚙️ <span data-i18n="nav_settings">设置</span></div>
+        <div class="page-subtitle" data-i18n="settings_sub">个性化你的疗愈空间</div>
+
+        <div class="card">
+          <div class="card-title">🎨 <span data-i18n="appearance">外观</span></div>
+          <div class="settings-row">
+            <span class="sr-label" data-i18n="theme">主题模式</span>
+            <div class="chip-row" id="theme-chips"></div>
+          </div>
+          <div class="settings-row">
+            <span class="sr-label" data-i18n="dyn_bg">动态背景</span>
+            <div class="chip-row" id="bg-chips"></div>
+          </div>
+          <div class="settings-row">
+            <span class="sr-label" data-i18n="gradient">氛围渐变</span>
+            <div class="chip-row" id="grad-chips"></div>
+          </div>
+          <div class="settings-row">
+            <span class="sr-label" data-i18n="font_size">字体大小</span>
+            <div style="display:flex;align-items:center;gap:8px;flex:1;max-width:240px">
+              <input type="range" id="font-slider" min="85" max="130" value="100" oninput="App.onFontChange()">
+              <span id="font-label" style="font-size:12px;min-width:40px">100%</span>
+            </div>
+          </div>
+          <div class="settings-row">
+            <span class="sr-label" data-i18n="language">语言</span>
+            <select id="lang-select" onchange="App.onLangChange()" style="width:160px">
+              <option value="zh">简体中文</option>
+              <option value="en">English</option>
+              <option value="ja">日本語</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">🔊 <span data-i18n="sound_fx">音效设置</span></div>
+          <div class="sound-grid" id="sound-grid"></div>
+          <div class="settings-row" style="margin-top:12px">
+            <span class="sr-label" data-i18n="volume">音量</span>
+            <div style="display:flex;align-items:center;gap:8px;flex:1;max-width:240px">
+              <input type="range" id="volume-slider" min="0" max="100" value="70" oninput="App.onVolumeChange()">
+              <span id="volume-label" style="font-size:12px;min-width:38px">70%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">🖌️ <span data-i18n="skins">主题皮肤</span> <span class="muted" style="font-weight:400;font-size:11px;margin-left:auto">⚡ <span id="skin-energy"></span></span></div>
+          <div class="skin-grid" id="skin-grid"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">⌨️ <span data-i18n="hotkeys">快捷键</span></div>
+          <div id="hotkey-list"></div>
+          <div class="muted" style="font-size:11px;margin-top:8px">点击「修改」后按下新的组合键（需包含 Ctrl 或 Alt）</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">🔔 <span data-i18n="notifications">提醒</span></div>
+          <div class="settings-row">
+            <span class="sr-label" data-i18n="reminder_on">每日目标提醒</span>
+            <label class="switch"><input type="checkbox" id="reminder-switch" onchange="App.onReminderToggle()"><span class="slider"></span></label>
+          </div>
+          <div class="settings-row">
+            <span class="sr-label" data-i18n="test_notify">测试通知</span>
+            <button class="btn btn-secondary btn-sm" onclick="App.testNotify()">发送</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">💾 <span data-i18n="data_mgmt">数据管理</span></div>
+          <div style="font-size:12.5px;color:var(--text-secondary);line-height:1.8;margin-bottom:10px">
+            数据保存在浏览器本地（IndexedDB）。备份会导出为 JSON 文件，可随时导入恢复。
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-secondary btn-sm" onclick="App.exportJSON()">📤 <span data-i18n="export_json">导出备份</span></button>
+            <button class="btn btn-secondary btn-sm" onclick="App.exportCSV()">📄 导出CSV</button>
+            <label class="btn btn-secondary btn-sm" style="cursor:pointer">📥 <span data-i18n="import_json">导入备份</span>
+              <input type="file" accept="application/json,.json" style="display:none" onchange="App.importJSON(this)">
+            </label>
+            <button class="btn btn-danger btn-sm" onclick="App.clearAllData()">🗑️ <span data-i18n="clear_data">清除数据</span></button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">📲 <span data-i18n="install_app">安装应用</span></div>
+          <div style="font-size:12.5px;color:var(--text-secondary);line-height:1.8;margin-bottom:10px" id="pwa-note">
+            支持安装到桌面，像独立应用一样使用。
+          </div>
+          <button class="btn btn-primary btn-sm" id="install-btn" onclick="App.installPWA()">⬇️ 安装到桌面</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">ℹ️ <span data-i18n="about">关于</span></div>
+          <div style="font-size:13px;color:var(--text-secondary);line-height:1.9;text-align:center">
+            ZenClicker Pro v6.0 · 数字疗愈工作台<br>
+            情绪释放 · 正念冥想 · 专注管理 · 游戏化成长<br>
+            每一次点击，都是一次放下 🧘
+          </div>
+        </div>
+      </section>
+<!-- PAGES-APPEND -->
+    </div>
+
+    <div class="bottom-nav">
+      <div class="bottom-nav-inner" id="bottom-nav"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   SECTION: js-i18n — 多语言字典
+   ================================================================ */
+const I18N = {
+zh:{nav_dash:'今日总览',dash_sub:'一眼看清情绪状态，开启疗愈的一天',health_idx:'情绪健康指数',score:'分',today_overview:'今日概览',my_pet:'情绪宠物',feed:'喂食',daily_quests:'每日任务',suggestions:'建议与提醒',week_mood:'近 7 天心情曲线',nav_release:'情绪释放',release_sub:'选择情绪点击释放，快速连点触发连击加成',custom_emotion:'自定义情绪标签',release:'释放',total_releases:'累计释放次数',nav_clicker:'连打挑战',clicker_sub:'10 秒疯狂点击，成绩将计入排行榜',clicks:'点击数',sec_left:'剩余秒数',best_cps:'最佳CPS',nav_journal:'情绪日志',journal_sub:'记录当下的心情，支持文字与照片',new_entry:'新建心情',how_feel:'现在感觉如何？',jr_ph:'写下你的想法…直接描述心情还能智能归类',add_photo:'添加照片',save_entry:'保存',mood_calendar:'情绪日历',mood_trend:'心情趋势',recent_entries:'最近记录',nav_breath:'呼吸练习',breath_sub:'跟随圆圈的节奏，慢慢呼吸',start_breath:'开始呼吸',reset:'重置',breath_pattern:'呼吸模式',cycles:'循环次数',voice_guide:'语音引导',ambient:'环境音',nav_meditate:'智能冥想',med_sub:'选择适合当前状态的场景，语音带你进入正念',med_dur:'冥想时长',start_meditate:'开始冥想',nav_sound:'音频疗愈',sound_sub:'混合多种环境音，搭配双耳节拍深度放松',mixer:'环境音混音台',binaural:'双耳节拍',base_freq:'基础频率',bin_on:'启用节拍',viz:'音频可视化',sleep_timer:'定时关闭',nav_pomodoro:'高级番茄钟',pomo_sub:'专注工作，完成后会建议你放松一下',start:'开始',pomo_settings:'计时设置',work_len:'工作时长',break_len:'休息时长',daily_goal:'每日目标',focus_analysis:'专注度分析',focus_history:'番茄历史',nav_stats:'数据统计',stats_sub:'查看你的情绪与专注记录',trend7:'7天释放趋势',emo_dist:'情绪分布',hour_dist:'24小时分布',refresh:'刷新数据',backup:'备份',nav_achv:'成就殿堂',nav_social:'禅意社区',social_sub:'本地体验版：分享内容仅保存在你的浏览器中',daily_quote:'每日禅语',challenges:'打卡挑战',checkin:'今日打卡',share_wall:'匿名分享墙',wall_ph:'匿名分享此刻的心情…',publish:'发布',rank:'CPS 排行榜',rank_note:'本地示例数据',nav_report:'情绪周报',report_sub:'生成你的专属数据卡片',generate:'生成周报',save_img:'保存图片',copy_img:'复制图片',ai_report:'AI 情绪洞察',nav_settings:'设置',settings_sub:'个性化你的疗愈空间',appearance:'外观',theme:'主题模式',dyn_bg:'动态背景',gradient:'氛围渐变',font_size:'字体大小',language:'语言',sound_fx:'音效设置',volume:'音量',skins:'主题皮肤',hotkeys:'快捷键',notifications:'提醒',reminder_on:'每日目标提醒',test_notify:'测试通知',data_mgmt:'数据管理',export_json:'导出备份',import_json:'导入备份',clear_data:'清除数据',install_app:'安装应用',about:'关于',nice:'太棒了！',skip:'跳过',released:'已释放',today:'今日',streak_d:'连续天数',total:'总释放',today_focus:'今日番茄',med_min:'冥想分钟',breath_n:'呼吸练习',released_toast:'情绪已释放',combo_bonus:'连击加成',journal_saved:'心情已保存',ai_classified:'AI 已智能归类',med_done:'冥想完成',pomo_done:'番茄完成！休息一下吧',breath_done:'呼吸练习完成，感觉好些了吗？',export_ok:'导出成功',import_ok:'导入成功',save_ok:'已保存',unlock:'成就解锁',level_up:'升级了',quest_done:'任务完成',claimed:'已领取',energy:'能量',checkin_ok:'打卡成功'},
+en:{nav_dash:'Dashboard',dash_sub:'A clear view of your emotional state',health_idx:'Wellness Index',score:'pts',today_overview:'Today',my_pet:'Mood Pet',feed:'Feed',daily_quests:'Daily Quests',suggestions:'Tips & Reminders',week_mood:'7-Day Mood Curve',nav_release:'Release',release_sub:'Pick an emotion, tap to release. Fast taps build combos',custom_emotion:'Custom emotion tag',release:'Release',total_releases:'Total releases',nav_clicker:'Click Rush',clicker_sub:'10-second clicking sprint, counts toward the leaderboard',clicks:'Clicks',sec_left:'Seconds left',best_cps:'Best CPS',nav_journal:'Journal',journal_sub:'Record your mood with text and photos',new_entry:'New Entry',how_feel:'How do you feel?',jr_ph:'Write your thoughts… describe your mood and AI will classify it',add_photo:'Add photo',save_entry:'Save',mood_calendar:'Mood Calendar',mood_trend:'Mood Trend',recent_entries:'Recent Entries',nav_breath:'Breathing',breath_sub:'Follow the circle, breathe slowly',start_breath:'Start',reset:'Reset',breath_pattern:'Pattern',cycles:'Cycles',voice_guide:'Voice guide',ambient:'Ambient',nav_meditate:'AI Meditation',med_sub:'Pick a scene and let the voice guide you',med_dur:'Duration',start_meditate:'Start',nav_sound:'Sound Therapy',sound_sub:'Mix ambient sounds with binaural beats',mixer:'Ambient Mixer',binaural:'Binaural Beats',base_freq:'Base frequency',bin_on:'Enable beats',viz:'Visualizer',sleep_timer:'Sleep Timer',nav_pomodoro:'Pomodoro',pomo_sub:'Focus deeply; we will suggest a break afterwards',start:'Start',pomo_settings:'Timer Settings',work_len:'Work',break_len:'Break',daily_goal:'Daily goal',focus_analysis:'Focus Analysis',focus_history:'History',nav_stats:'Statistics',stats_sub:'Your emotion & focus records',trend7:'7-Day Trend',emo_dist:'Emotion Mix',hour_dist:'24-Hour Spread',refresh:'Refresh',backup:'Backup',nav_achv:'Achievements',nav_social:'Zen Community',social_sub:'Local demo: posts are stored only in your browser',daily_quote:'Quote of the Day',challenges:'Challenges',checkin:'Check in',share_wall:'Anonymous Wall',wall_ph:'Share anonymously…',publish:'Post',rank:'CPS Leaderboard',rank_note:'Local sample data',nav_report:'Weekly Report',report_sub:'Generate your data card',generate:'Generate',save_img:'Save image',copy_img:'Copy image',ai_report:'AI Insights',nav_settings:'Settings',settings_sub:'Personalize your healing space',appearance:'Appearance',theme:'Theme',dyn_bg:'Animated background',gradient:'Ambient gradient',font_size:'Font size',language:'Language',sound_fx:'Sound Effects',volume:'Volume',skins:'Skins',hotkeys:'Hotkeys',notifications:'Reminders',reminder_on:'Daily goal reminder',test_notify:'Test notification',data_mgmt:'Data',export_json:'Export backup',import_json:'Import backup',clear_data:'Clear data',install_app:'Install App',about:'About',nice:'Awesome!',skip:'Skip',released:'Released',today:'Today',streak_d:'Streak',total:'Total',today_focus:'Pomodoros',med_min:'Meditation min',breath_n:'Breath sessions',released_toast:'Emotion released',combo_bonus:'Combo bonus',journal_saved:'Entry saved',ai_classified:'Classified by AI',med_done:'Meditation complete',pomo_done:'Pomodoro done! Take a break',breath_done:'Breathing done. Feeling better?',export_ok:'Exported',import_ok:'Imported',save_ok:'Saved',unlock:'Achievement unlocked',level_up:'Level up',quest_done:'Quest complete',claimed:'Claimed',energy:'Energy',checkin_ok:'Checked in'},
+ja:{nav_dash:'ダッシュボード',dash_sub:'心の状態をひと目で確認',health_idx:'メンタル指数',score:'点',today_overview:'今日の概要',my_pet:'きぶんペット',feed:'エサやり',daily_quests:'デイリータスク',suggestions:'アドバイス',week_mood:'7日間の気分曲線',nav_release:'リリース',release_sub:'感情を選んでタップで解放、連打でコンボ',custom_emotion:'カスタム感情タグ',release:'解放',total_releases:'累計リリース',nav_clicker:'連打チャレンジ',clicker_sub:'10秒間タップ、ランキングに反映',clicks:'タップ数',sec_left:'残り秒',best_cps:'最高CPS',nav_journal:'気分日記',journal_sub:'今の気分を文字と写真で記録',new_entry:'新しい記録',how_feel:'今の気分は？',jr_ph:'思いを書きましょう…気分の自動分類も可能',add_photo:'写真を追加',save_entry:'保存',mood_calendar:'気分カレンダー',mood_trend:'気分の推移',recent_entries:'最近の記録',nav_breath:'呼吸法',breath_sub:'円のリズムに合わせてゆっくり呼吸',start_breath:'開始',reset:'リセット',breath_pattern:'パターン',cycles:'サイクル',voice_guide:'音声ガイド',ambient:'環境音',nav_meditate:'AI瞑想',med_sub:'シーンを選んで音声ガイドで瞑想',med_dur:'時間',start_meditate:'開始',nav_sound:'サウンドセラピー',sound_sub:'環境音ミックスとバイノーラルビート',mixer:'環境音ミキサー',binaural:'バイノーラルビート',base_freq:'基本周波数',bin_on:'ビートを有効化',viz:'ビジュアライザー',sleep_timer:'スリープタイマー',nav_pomodoro:'ポモドーロ',pomo_sub:'集中後にリラックスを提案',start:'開始',pomo_settings:'タイマー設定',work_len:'作業',break_len:'休憩',daily_goal:'目標',focus_analysis:'集中分析',focus_history:'履歴',nav_stats:'統計',stats_sub:'感情と集中の記録',trend7:'7日間の傾向',emo_dist:'感情の分布',hour_dist:'24時間分布',refresh:'更新',backup:'バックアップ',nav_achv:'実績',nav_social:'禅コミュニティ',social_sub:'ローカル版：投稿はブラウザ内にのみ保存',daily_quote:'今日の一言',challenges:'チャレンジ',checkin:'チェックイン',share_wall:'匿名の壁',wall_ph:'匿名で今の気分を共有…',publish:'投稿',rank:'CPSランキング',rank_note:'ローカルサンプル',nav_report:'週間レポート',report_sub:'データカードを生成',generate:'生成',save_img:'画像保存',copy_img:'画像コピー',ai_report:'AIインサイト',nav_settings:'設定',settings_sub:'自分だけの空間に',appearance:'外観',theme:'テーマ',dyn_bg:'動く背景',gradient:'グラデーション',font_size:'文字サイズ',language:'言語',sound_fx:'効果音',volume:'音量',skins:'スキン',hotkeys:'ショートカット',notifications:'リマインダー',reminder_on:'目標リマインダー',test_notify:'テスト通知',data_mgmt:'データ管理',export_json:'バックアップ出力',import_json:'バックアップ読込',clear_data:'データ消去',install_app:'アプリをインストール',about:'概要',nice:'素晴らしい！',skip:'スキップ',released:'解放した',today:'今日',streak_d:'連続日数',total:'合計',today_focus:'ポモドーロ',med_min:'瞑想(分)',breath_n:'呼吸回数',released_toast:'感情を解放しました',combo_bonus:'コンボ',journal_saved:'保存しました',ai_classified:'AIが分類しました',med_done:'瞑想完了',pomo_done:'ポモドーロ完了！休憩を',breath_done:'呼吸完了。気分は？',export_ok:'出力しました',import_ok:'読み込みました',save_ok:'保存しました',unlock:'実績解除',level_up:'レベルアップ',quest_done:'タスク達成',claimed:'受取済',energy:'エネルギー',checkin_ok:'チェックイン完了'}
+};
+let LANG = 'zh';
+function T(k){ return (I18N[LANG] && I18N[LANG][k]) || I18N.zh[k] || k; }
+function applyI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{ el.textContent = T(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{ el.placeholder = T(el.dataset.i18nPh); });
+}
+
+/* ================================================================
+   SECTION: js-constants — 情绪/皮肤/成就/语录等常量
+   ================================================================ */
+const EMOTION_TAGS = [
+  {name:'未标记',icon:'🤷',color:'#888888',cat:'calm'},
+  {name:'焦虑',icon:'😰',color:'#FF6B6B',cat:'negative'},
+  {name:'愤怒',icon:'😤',color:'#FF8E53',cat:'negative'},
+  {name:'疲惫',icon:'😩',color:'#A29BFE',cat:'negative'},
+  {name:'压力',icon:'🥵',color:'#e17055',cat:'negative'},
+  {name:'开心',icon:'😊',color:'#00D2D3',cat:'positive'},
+  {name:'平静',icon:'😌',color:'#54A0FF',cat:'calm'},
+  {name:'治愈',icon:'🥰',color:'#2ed8a3',cat:'positive'},
+];
+const MOOD_SCALE = [
+  {v:1,icon:'😞',name:'很糟',color:'#ff6b6b'},
+  {v:2,icon:'😕',name:'低落',color:'#ffa06b'},
+  {v:3,icon:'😐',name:'一般',color:'#f0c34e'},
+  {v:4,icon:'🙂',name:'不错',color:'#7bd88f'},
+  {v:5,icon:'😄',name:'很好',color:'#2ed8a3'},
+];
+const MOOD_WORDS = {
+  1:['难过','伤心','崩溃','绝望','想哭','烦死','焦虑','抑郁','痛苦','受不了','糟糕','累垮','失眠','sad','upset','anxious','cry','terrible'],
+  2:['低落','郁闷','疲惫','好累','无力','没劲','无聊','疲惫','tired','down','bored','累'],
+  3:['一般','还行','平淡','正常','还可以','普通','okay','normal','fine'],
+  4:['开心','不错','满足','轻松','放松','欣慰','愉快','平静','治愈','happy','good','relaxed','calm','nice'],
+  5:['超棒','太开心','幸福','兴奋','棒极了','快乐','活力','元气','amazing','great','joy','excited','best'],
+};
+const SKINS = {
+  default:{name:'默认蓝夜',accent:'#5b8cff',rgb:'91,140,255',cost:0},
+  ocean:{name:'深海静谧',accent:'#00b894',rgb:'0,184,148',cost:0},
+  sakura:{name:'樱花物语',accent:'#fd79a8',rgb:'253,121,168',cost:60},
+  aurora:{name:'极光幻梦',accent:'#a29bfe',rgb:'162,155,254',cost:60},
+  cyberpunk:{name:'赛博朋克',accent:'#00fff5',rgb:'0,255,245',cost:100},
+  zen:{name:'禅意空间',accent:'#a8e6cf',rgb:'168,230,207',cost:80},
+  neon:{name:'霓虹都市',accent:'#ff5edb',rgb:'255,94,219',cost:100},
+  galaxy:{name:'星河紫夜',accent:'#7d5fff',rgb:'125,95,255',cost:120},
+  forest:{name:'森林晨雾',accent:'#2ecc71',rgb:'46,204,113',cost:80},
+  gold:{name:'鎏金岁月',accent:'#f7b733',rgb:'247,183,51',cost:150},
+};
+const SOUNDS = {
+  ding:{name:'默认叮声',cost:0}, pop:{name:'气泡弹出',cost:0}, woodfish:{name:'木鱼',cost:40},
+  rain:{name:'水滴',cost:40}, crystal:{name:'水晶',cost:60}, cosmic:{name:'宇宙',cost:80},
+  bell:{name:'禅钟',cost:60}, chime:{name:'风铃',cost:40},
+};
+const AMBIENT_DEFS = [
+  {id:'none',name:'无',icon:'🚫'},
+  {id:'rain',name:'雨声',icon:'🌧️'},
+  {id:'ocean',name:'海浪',icon:'🌊'},
+  {id:'fire',name:'篝火',icon:'🔥'},
+  {id:'forest',name:'森林',icon:'🌲'},
+  {id:'noise',name:'白噪音',icon:'📻'},
+];
+const ZEN_QUOTES = [
+  '春有百花秋有月，夏有凉风冬有雪。','你不需要成为任何人，你只需要成为你自己。',
+  '情绪没有好坏，它们只是路过的云。','慢慢来，比较快。','此刻的你，已经足够好。',
+  '呼吸是回家最近的路。','允许一切发生，是自由的开始。','山不过来，我就过去。',
+  '万物皆有裂痕，那是光照进来的地方。','你无法控制风向，但可以调整风帆。',
+  '风来疏竹，风过而竹不留声。','把每一次点击，当作一次放下。',
+  '你不是你的情绪，你是观察情绪的那个人。','行到水穷处，坐看云起时。',
+  '温柔地对待自己，你值得。','一念放下，万般自在。','生活在当下，是最好的禅修。',
+  '心如止水，方能映照万物。','放慢脚步，灵魂才跟得上。',
+];
+const MED_SCENES = {
+  sleep:{icon:'🌙',name:'助眠',desc:'放下思绪，进入深睡',script:[
+    '找一个舒服的姿势，轻轻闭上眼睛。','把注意力带到呼吸上，不用改变它。',
+    '想象身体一点点变轻，像一片羽毛。','今天的烦恼，都留在身外，不必带走。',
+    '每一次呼气，身体都更沉、更放松。','周围越来越安静，心也越来越静。',
+    '你做得很好，什么都不必想。','让睡意像潮水一样，慢慢漫上来。']},
+  focus:{icon:'🎯',name:'专注',desc:'收拢注意力，回到当下',script:[
+    '坐直，双脚平放地面，轻闭双眼。','深吸一口气，再缓缓吐出。',
+    '把注意力集中在鼻尖的空气流动上。','杂念来了，看见它，然后轻轻放回呼吸。',
+    '你的心正在变得清晰、稳定。','每一次呼吸，都在为专注充电。',
+    '此刻只有这一件事，就是呼吸。','带着这份清晰，慢慢回到当下。']},
+  relax:{icon:'🍃',name:'放松',desc:'卸下紧绷，舒展身心',script:[
+    '闭上眼睛，做一次深长的呼吸。','从头顶开始，一点点扫描身体。',
+    '眉头松开，肩膀沉下去，下巴放松。','紧绷的地方，想象温热的阳光照进去。',
+    '你不需要做任何事，只是存在着。','身体越来越轻，像浮在水面上。',
+    '安全感包裹着你，一切都好。','享受此刻的宁静，你值得休息。']},
+  energy:{icon:'☀️',name:'能量',desc:'唤醒活力，注入元气',script:[
+    '挺直脊背，做三次有力的深呼吸。','想象清晨的阳光照进胸口。',
+    '每一次吸气，都吸入金色的能量。','能量流向四肢，身体暖了起来。',
+    '你内在的力量正在苏醒。','今天，你有足够的能量面对一切。',
+    '嘴角轻轻上扬，感受这份活力。','带着元气，睁开双眼。']},
+};
+const MED_DURATIONS = [3,5,10,15,30];
+const BINAURAL_PRESETS = [
+  {beat:2,name:'δ 深睡',desc:'深度睡眠'},
+  {beat:4,name:'θ 冥想',desc:'深度放松'},
+  {beat:7.83,name:'α 平静',desc:'舒缓压力'},
+  {beat:10,name:'α 放松',desc:'身心放松'},
+  {beat:14,name:'β 专注',desc:'提升专注'},
+  {beat:40,name:'γ 洞察',desc:'思维敏锐'},
+];
+const LEVELS = ['初心者','正念学徒','情绪观察员','呼吸行者','冥想士','专注达人','能量大师','禅修者','放下大师','禅宗大师'];
+const LEVEL_XP = n => 80*n*n; // xp needed to reach level n+1 (cumulative from level n)
+const PET_STAGES = [
+  {xp:0,stage:'未孵化的蛋'},
+  {xp:30,stage:'破壳幼崽'},
+  {xp:80,stage:'成长期'},
+  {xp:160,stage:'成熟体'},
+  {xp:300,stage:'光辉体'},
+];
+const PET_TYPES = {
+  heal:{icon:'🐰',name:'治愈系 · 团团'},
+  vital:{icon:'🦊',name:'活力系 · 焰焰'},
+  calm:{icon:'🐢',name:'平静系 · 慢慢'},
+};
+const RANK_BOTS = [
+  {name:'匿名禅师',cps:11.2},{name:'木鱼大师',cps:9.8},{name:'深夜诗人',cps:8.5},
+  {name:'云端旅人',cps:7.2},{name:'呼吸达人',cps:6.4},{name:'山间清风',cps:5.1},
+];
+const WALL_SEEDS = [
+  {name:'迷途的星星',text:'今天加班到很晚，但看到月亮的时候突然觉得，生活还是有光的。',ago:2},
+  {name:'海边的猫',text:'第一次用呼吸练习熬过了焦虑发作，谢谢这个小小的角落。',ago:5},
+  {name:'无人区玫瑰',text:'释放了 100 次之后发现，原来我一直在等自己原谅自己。',ago:9},
+  {name:'晚风',text:'冥想 10 分钟，比刷一小时手机舒服多了。晚安。',ago:20},
+  {name:'小满',text:'连续打卡第 14 天，情绪稳定了，和家人的关系也在变好。',ago:30},
+];
+const TIERS = {bronze:{name:'青铜',color:'#cd7f32'},silver:{name:'白银',color:'#c0c0c0'},gold:{name:'黄金',color:'#FFD700'},diamond:{name:'钻石',color:'#4dd7ff'},legend:{name:'传说',color:'#ff6ec7'}};
+const ACHIEVEMENTS = [
+  {id:'a1',tier:'bronze',icon:'🌱',name:'初次释放',desc:'完成第 1 次情绪释放',check:c=>c.total>=1},
+  {id:'a2',tier:'bronze',icon:'🔥',name:'渐入佳境',desc:'累计释放 10 次',check:c=>c.total>=10},
+  {id:'a3',tier:'bronze',icon:'📔',name:'第一页心情',desc:'记录第 1 条情绪日志',check:c=>c.journal>=1},
+  {id:'a4',tier:'bronze',icon:'🌬️',name:'第一次呼吸',desc:'完成 1 次呼吸练习',check:c=>c.breath>=1},
+  {id:'a5',tier:'bronze',icon:'🧘',name:'冥想启程',desc:'完成 1 次冥想',check:c=>c.medSess>=1},
+  {id:'a6',tier:'bronze',icon:'🍅',name:'第一个番茄',desc:'完成 1 个番茄钟',check:c=>c.pomos>=1},
+  {id:'a7',tier:'bronze',icon:'📅',name:'首次打卡',desc:'完成 1 次社区打卡',check:c=>c.checkins>=1},
+  {id:'a8',tier:'bronze',icon:'⚡',name:'手速小成',desc:'连打挑战达到 5 CPS',check:c=>c.bestCPS>=5},
+  {id:'a9',tier:'bronze',icon:'🔗',name:'连击新手',desc:'达成 5 连击',check:c=>c.maxCombo>=5},
+  {id:'a10',tier:'bronze',icon:'⭐',name:'崭露头角',desc:'等级达到 2 级',check:c=>c.level>=2},
+  {id:'a11',tier:'silver',icon:'💥',name:'压力粉碎机',desc:'累计释放 50 次',check:c=>c.total>=50},
+  {id:'a12',tier:'silver',icon:'🗓️',name:'七日之约',desc:'连续使用 7 天',check:c=>c.streak>=7},
+  {id:'a13',tier:'silver',icon:'✍️',name:'日记新手',desc:'累计记录 10 条日志',check:c=>c.journal>=10},
+  {id:'a14',tier:'silver',icon:'🕯️',name:'冥想入门',desc:'累计冥想 15 分钟',check:c=>c.medMin>=15},
+  {id:'a15',tier:'silver',icon:'🎯',name:'专注学徒',desc:'累计完成 10 个番茄',check:c=>c.pomos>=10},
+  {id:'a16',tier:'silver',icon:'🫁',name:'呼吸行者',desc:'完成 10 次呼吸练习',check:c=>c.breath>=10},
+  {id:'a17',tier:'silver',icon:'🕊️',name:'墙上之声',desc:'在分享墙发布 1 条内容',check:c=>c.wall>=1},
+  {id:'a18',tier:'silver',icon:'🔋',name:'能量积蓄',desc:'累计获得 100 能量',check:c=>c.energyEarned>=100},
+  {id:'a19',tier:'gold',icon:'🏄',name:'情绪冲浪手',desc:'累计释放 200 次',check:c=>c.total>=200},
+  {id:'a20',tier:'gold',icon:'🌊',name:'三七之约',desc:'连续使用 21 天',check:c=>c.streak>=21},
+  {id:'a21',tier:'gold',icon:'📚',name:'日记作家',desc:'累计记录 30 条日志',check:c=>c.journal>=30},
+  {id:'a22',tier:'gold',icon:'🌌',name:'冥想达人',desc:'累计冥想 60 分钟',check:c=>c.medMin>=60},
+  {id:'a23',tier:'gold',icon:'🍅',name:'番茄能手',desc:'累计完成 30 个番茄',check:c=>c.pomos>=30},
+  {id:'a24',tier:'gold',icon:'🚀',name:'极速王者',desc:'连打挑战达到 8 CPS',check:c=>c.bestCPS>=8},
+  {id:'a25',tier:'gold',icon:'⚔️',name:'连击宗师',desc:'达成 15 连击',check:c=>c.maxCombo>=15},
+  {id:'a26',tier:'gold',icon:'🐾',name:'宠物驯养师',desc:'宠物成长到成熟体',check:c=>c.petStage>=3},
+  {id:'a27',tier:'diamond',icon:'🤖',name:'赛博禅师',desc:'累计释放 500 次',check:c=>c.total>=500},
+  {id:'a28',tier:'diamond',icon:'💎',name:'半百之约',desc:'累计打卡 50 次',check:c=>c.checkins>=50},
+  {id:'a29',tier:'diamond',icon:'🌟',name:'情绪圣贤',desc:'连续使用 50 天',check:c=>c.streak>=50},
+  {id:'a30',tier:'diamond',icon:'🛕',name:'冥想圣贤',desc:'累计冥想 180 分钟',check:c=>c.medMin>=180},
+  {id:'a31',tier:'diamond',icon:'👑',name:'专注传说',desc:'累计完成 100 个番茄',check:c=>c.pomos>=100},
+  {id:'a32',tier:'diamond',icon:'🌠',name:'光之伙伴',desc:'等级达到 8 级',check:c=>c.level>=8},
+  {id:'a33',tier:'legend',icon:'🕉️',name:'万物皆空',desc:'累计释放 2000 次',check:c=>c.total>=2000},
+  {id:'a34',tier:'legend',icon:'🏔️',name:'百日禅心',desc:'连续使用 100 天',check:c=>c.streak>=100},
+  {id:'a35',tier:'legend',icon:'🧘',name:'禅宗大师',desc:'等级达到 10 级',check:c=>c.level>=10},
+  {id:'a36',tier:'legend',icon:'🎐',name:'回音之壁',desc:'在分享墙发布 20 条内容',check:c=>c.wall>=20},
+];
+const QUESTS = [
+  {id:'q_release',icon:'💥',name:'释放 5 次情绪',target:5,reward:10,metric:'release'},
+  {id:'q_journal',icon:'📔',name:'记录 1 条心情日志',target:1,reward:10,metric:'journal'},
+  {id:'q_breath',icon:'🌬️',name:'完成 1 次呼吸练习',target:1,reward:10,metric:'breath'},
+  {id:'q_focus',icon:'🍅',name:'完成 1 个番茄钟',target:1,reward:15,metric:'pomo'},
+];
+const NAV_ITEMS = [
+  {id:'dashboard',icon:'🏠',label:'总览'},
+  {id:'release',icon:'💥',label:'释放'},
+  {id:'clicker',icon:'⚡',label:'连打'},
+  {id:'journal',icon:'📔',label:'日志'},
+  {id:'breath',icon:'🌬️',label:'呼吸'},
+  {id:'meditate',icon:'🧘',label:'冥想'},
+  {id:'sound',icon:'🎧',label:'音频'},
+  {id:'pomodoro',icon:'🍅',label:'番茄'},
+  {id:'stats',icon:'📊',label:'统计'},
+  {id:'achievements',icon:'🏆',label:'成就'},
+  {id:'social',icon:'🌸',label:'社区'},
+  {id:'report',icon:'📋',label:'周报'},
+  {id:'settings',icon:'⚙️',label:'设置'},
+];
+const MOBILE_MAIN = ['dashboard','release','journal','meditate'];
+const BREATH_PATTERNS = {
+  '4-7-8':[{name:'吸气',dur:4,target:1},{name:'屏息',dur:7,target:1},{name:'呼气',dur:8,target:0.45}],
+  'box':[{name:'吸气',dur:4,target:1},{name:'屏息',dur:4,target:1},{name:'呼气',dur:4,target:0.45},{name:'屏息',dur:4,target:0.45}],
+  'calm':[{name:'吸气',dur:5,target:1},{name:'呼气',dur:5,target:0.45}],
+};
+const GRADIENTS = {
+  none:{name:'无'},
+  aurora:{name:'极光',css:'radial-gradient(1200px 600px at 80% -10%, rgba(91,140,255,.20), transparent 60%),radial-gradient(900px 500px at 10% 110%, rgba(46,216,163,.14), transparent 60%)'},
+  sunset:{name:'晚霞',css:'radial-gradient(1100px 560px at 85% -10%, rgba(255,110,120,.18), transparent 60%),radial-gradient(900px 500px at 8% 108%, rgba(247,183,51,.14), transparent 60%)'},
+  mint:{name:'薄荷',css:'radial-gradient(1100px 560px at 82% -10%, rgba(46,216,163,.17), transparent 60%),radial-gradient(900px 520px at 10% 108%, rgba(84,160,255,.14), transparent 60%)'},
+};
+
+/* ================================================================
+   SECTION: js-db — IndexedDB 数据层（降级 localStorage）
+   ================================================================ */
+const DB = {
+  name:'zenclicker_pro', ver:1, db:null, useIDB:true,
+  events:[], journal:[], meds:[], pomos:[], wall:[],
+  async init(){
+    try{
+      this.db = await new Promise((res,rej)=>{
+        const req = indexedDB.open(this.name,this.ver);
+        req.onupgradeneeded = e=>{
+          const d = e.target.result;
+          ['events','journal','meds','pomos'].forEach(s=>{ if(!d.objectStoreNames.contains(s)) d.createObjectStore(s,{keyPath:'id'}); });
+        };
+        req.onsuccess = e=>res(e.target.result);
+        req.onerror = ()=>rej(req.error);
+      });
+      this.events = await this.loadStore('events');
+      this.journal = await this.loadStore('journal');
+      this.meds = await this.loadStore('meds');
+      this.pomos = await this.loadStore('pomos');
+    }catch(e){ this.useIDB = false; this.fromLS(); }
+    this.wall = JSON.parse(localStorage.getItem('zcp_wall')||'null') || [];
+    this.events.sort((a,b)=>a.ts-b.ts);
+    this.journal.sort((a,b)=>a.ts-b.ts);
+  },
+  loadStore(store){
+    return new Promise(res=>{
+      const tx = this.db.transaction(store,'readonly');
+      const req = tx.objectStore(store).getAll();
+      req.onsuccess = ()=>res(req.result||[]);
+      req.onerror = ()=>res([]);
+    });
+  },
+  persist(store){
+    if(!this.useIDB){ this.toLS(); return; }
+    try{
+      const tx = this.db.transaction(store,'readwrite');
+      const os = tx.objectStore(store);
+      os.clear();
+      (this[store]||[]).forEach(r=>os.put(r));
+    }catch(e){ this.useIDB=false; this.toLS(); }
+  },
+  toLS(){
+    try{
+      localStorage.setItem('zcp_events',JSON.stringify(this.events));
+      localStorage.setItem('zcp_journal',JSON.stringify(this.journal));
+      localStorage.setItem('zcp_meds',JSON.stringify(this.meds));
+      localStorage.setItem('zcp_pomos',JSON.stringify(this.pomos));
+    }catch(e){}
+  },
+  fromLS(){
+    try{
+      this.events = JSON.parse(localStorage.getItem('zcp_events')||'[]');
+      this.journal = JSON.parse(localStorage.getItem('zcp_journal')||'[]');
+      this.meds = JSON.parse(localStorage.getItem('zcp_meds')||'[]');
+      this.pomos = JSON.parse(localStorage.getItem('zcp_pomos')||'[]');
+    }catch(e){}
+  },
+  uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); },
+  addEvent(emotion,ts){
+    const r = {id:this.uid(),ts:ts||Date.now(),emotion};
+    this.events.push(r); this.persist('events'); return r;
+  },
+  addJournal(entry){ entry.id=this.uid(); this.journal.push(entry); this.persist('journal'); },
+  delJournal(id){ this.journal=this.journal.filter(j=>j.id!==id); this.persist('journal'); },
+  addMed(r){ r.id=this.uid(); this.meds.push(r); this.persist('meds'); },
+  addPomo(r){ r.id=this.uid(); this.pomos.push(r); this.persist('pomos'); },
+  saveWall(){ try{ localStorage.setItem('zcp_wall',JSON.stringify(this.wall.slice(-60))); }catch(e){} },
+  /* ---- 统计 ---- */
+  getTotal(){ return this.events.length; },
+  todayStart(){ const d=new Date(); d.setHours(0,0,0,0); return d.getTime(); },
+  getToday(){ const t=this.todayStart(); return this.events.filter(e=>e.ts>=t).length; },
+  getDaily(days=7){
+    const out=[];
+    for(let i=days-1;i>=0;i--){
+      const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-i);
+      const nx=d.getTime()+86400000;
+      out.push({label:`${d.getMonth()+1}/${d.getDate()}`,count:this.events.filter(e=>e.ts>=d.getTime()&&e.ts<nx).length});
+    }
+    return out;
+  },
+  getEmotionDist(days=7){
+    const since=Date.now()-days*86400000, dist={};
+    this.events.filter(e=>e.ts>=since).forEach(e=>{dist[e.emotion]=(dist[e.emotion]||0)+1;});
+    return dist;
+  },
+  getHourly(days=7){
+    const since=Date.now()-days*86400000, h=new Array(24).fill(0);
+    this.events.filter(e=>e.ts>=since).forEach(e=>h[new Date(e.ts).getHours()]++);
+    return h;
+  },
+  getStreak(){
+    if(!this.events.length) return 0;
+    const set=new Set();
+    this.events.forEach(e=>{const d=new Date(e.ts);d.setHours(0,0,0,0);set.add(d.getTime());});
+    const days=[...set].sort((a,b)=>b-a);
+    const today=new Date();today.setHours(0,0,0,0);
+    let idx=0;
+    if(days[0]!==today.getTime() && days[0]!==today.getTime()-86400000) return 0;
+    let streak=1;
+    for(let i=1;i<days.length;i++){ if(days[i-1]-days[i]===86400000) streak++; else break; }
+    return streak;
+  },
+  weekTotal(offset=0){
+    const now=new Date(); const start=new Date(); start.setHours(0,0,0,0); start.setDate(start.getDate()-6-offset*7);
+    const end=start.getTime()+7*86400000;
+    return this.events.filter(e=>e.ts>=start.getTime()&&e.ts<end).length;
+  },
+  journalToday(){ const t=this.todayStart(); return this.journal.filter(j=>j.ts>=t); },
+  journalDailyAvg(days=14){
+    const out=[];
+    for(let i=days-1;i>=0;i--){
+      const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-i);
+      const nx=d.getTime()+86400000;
+      const list=this.journal.filter(j=>j.ts>=d.getTime()&&j.ts<nx);
+      out.push({label:`${d.getMonth()+1}/${d.getDate()}`,v:list.length?list.reduce((s,j)=>s+j.mood,0)/list.length:null});
+    }
+    return out;
+  },
+  pomosToday(){ const t=this.todayStart(); return this.pomos.filter(p=>p.ts>=t); },
+  pomoDaily(days=7){
+    const out=[];
+    for(let i=days-1;i>=0;i--){
+      const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-i);
+      const nx=d.getTime()+86400000;
+      out.push({label:`${d.getMonth()+1}/${d.getDate()}`,count:this.pomos.filter(p=>p.ts>=d.getTime()&&p.ts<nx).length});
+    }
+    return out;
+  },
+  medTodayMinutes(){ const t=this.todayStart(); return this.meds.filter(m=>m.ts>=t).reduce((s,m)=>s+(m.minutes||0),0); },
+  medTotalMinutes(){ return this.meds.reduce((s,m)=>s+(m.minutes||0),0); },
+  clearAll(){
+    this.events=[];this.journal=[];this.meds=[];this.pomos=[];this.wall=[];
+    ['events','journal','meds','pomos'].forEach(s=>this.persist(s));
+    this.saveWall();
+  },
+};
+
+/* ================================================================
+   SECTION: js-config — 配置层（localStorage）
+   ================================================================ */
+const Config = {
+  KEY:'zenclicker_pro_config',
+  defaults:{
+    skin:'default',sound:'ding',volume:.7,particles:true,vibrate:true,
+    unlockedSkins:['default','ocean'],unlockedSounds:['ding','pop'],
+    bestCPS:0,breathPattern:'4-7-8',breathCycles:4,breathVoice:false,breathAmbient:'none',
+    pomoWork:25,pomoBreak:5,pomoGoal:4,
+    theme:'dark',bgAnim:'stars',gradient:'aurora',fontScale:1,lang:'zh',
+    xp:0,level:1,energy:0,energyEarned:0,
+    breathSessions:0,maxCombo:0,checkinDates:[],activeChallenge:7,
+    petXP:0,customEmotions:[],hotkeys:{release:'Ctrl+Shift+F',meditate:'Ctrl+Shift+M',pomo:'Ctrl+Shift+P',journal:'Ctrl+Shift+J'},
+    questState:{date:'',progress:{},claimed:{}},
+    firstRun:true,reminderOn:false,pwaHintSeen:false,
+    medScene:'relax',medDur:5,medVoice:true,
+  },
+  data:null,
+  init(){
+    try{ this.data={...this.defaults,...JSON.parse(localStorage.getItem(this.KEY)||'{}')}; }
+    catch(e){ this.data={...this.defaults}; }
+    // 兼容旧版 localStorage 事件数据迁移
+    try{
+      const old=localStorage.getItem('zenclicker_events');
+      if(old && !localStorage.getItem('zcp_migrated')){
+        const evts=JSON.parse(old);
+        evts.forEach(e=>DB.addEvent(e.emotion,e.ts));
+        localStorage.setItem('zcp_migrated','1');
+      }
+    }catch(e){}
+  },
+  get(k){ return this.data[k] ?? this.defaults[k]; },
+  set(k,v){ this.data[k]=v; this.save(); },
+  save(){ try{ localStorage.setItem(this.KEY,JSON.stringify(this.data)); }catch(e){} },
+  todayKey(){ const d=new Date(); return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`; },
+};
+/* ================================================================
+   SECTION: js-sound — 音效合成引擎（Web Audio）
+   ================================================================ */
+const SoundEngine = {
+  ctx:null, analyser:null,
+  init(){ try{ this.ctx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} },
+  ensure(){
+    if(!this.ctx) this.init();
+    if(this.ctx && this.ctx.state==='suspended') this.ctx.resume().catch(()=>{});
+    return this.ctx;
+  },
+  play(id){
+    id = id || Config.get('sound');
+    const ctx=this.ensure(); if(!ctx) return;
+    const vol=Config.get('volume');
+    const fn=this.synths[id]||this.synths.ding;
+    fn.call(this,vol);
+  },
+  synths:{
+    ding(vol){ const c=SoundEngine.ctx,t=c.currentTime,o=c.createOscillator(),g=c.createGain();
+      o.type='sine';o.frequency.setValueAtTime(880,t);g.gain.setValueAtTime(vol*.5,t);
+      g.gain.exponentialRampToValueAtTime(.001,t+.3);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+.3);},
+    pop(vol){ const c=SoundEngine.ctx,t=c.currentTime,o=c.createOscillator(),g=c.createGain();
+      o.type='sine';o.frequency.setValueAtTime(2600,t);o.frequency.exponentialRampToValueAtTime(600,t+.15);
+      g.gain.setValueAtTime(vol*.4,t);g.gain.exponentialRampToValueAtTime(.001,t+.15);
+      o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+.15);},
+    woodfish(vol){ const c=SoundEngine.ctx,t=c.currentTime,o=c.createOscillator(),g=c.createGain();
+      o.type='triangle';o.frequency.setValueAtTime(220,t);g.gain.setValueAtTime(vol*.5,t);
+      g.gain.exponentialRampToValueAtTime(.001,t+.25);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+.25);},
+    rain(vol){ const c=SoundEngine.ctx,t=c.currentTime,o=c.createOscillator(),g=c.createGain();
+      o.type='sine';o.frequency.setValueAtTime(1200,t);o.frequency.linearRampToValueAtTime(400,t+.4);
+      g.gain.setValueAtTime(vol*.3,t);g.gain.exponentialRampToValueAtTime(.001,t+.4);
+      o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+.4);},
+    crystal(vol){ const c=SoundEngine.ctx,t=c.currentTime;[1047,1319,1568].forEach((f,i)=>{
+      const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=f;
+      g.gain.setValueAtTime(vol*.2/(i+1),t);g.gain.exponentialRampToValueAtTime(.001,t+.5);
+      o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+.5);});},
+    cosmic(vol){ const c=SoundEngine.ctx,t=c.currentTime,o=c.createOscillator(),g=c.createGain(),
+      l=c.createOscillator(),lg=c.createGain();o.type='sawtooth';o.frequency.value=300;
+      l.type='sine';l.frequency.value=5;lg.gain.value=200;l.connect(lg);lg.connect(o.frequency);
+      g.gain.setValueAtTime(vol*.3,t);g.gain.exponentialRampToValueAtTime(.001,t+.6);
+      o.connect(g);g.connect(c.destination);o.start(t);l.start(t);o.stop(t+.6);l.stop(t+.6);},
+    bell(vol){ const c=SoundEngine.ctx,t=c.currentTime;[196,392,587].forEach((f,i)=>{
+      const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=f;
+      g.gain.setValueAtTime(vol*.3/(i+1),t);g.gain.exponentialRampToValueAtTime(.001,t+1.2);
+      o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+1.2);});},
+    chime(vol){ const c=SoundEngine.ctx,t=c.currentTime;[2093,2637,3136].forEach((f,i)=>{
+      const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=f;
+      g.gain.setValueAtTime(vol*.15/(i+1),t);g.gain.exponentialRampToValueAtTime(.001,t+.8);
+      o.connect(g);g.connect(c.destination);o.start(t+i*.05);o.stop(t+.8);});},
+  }
+};
+
+/* ================================================================
+   SECTION: js-ambient — 环境音/白噪音/双耳节拍合成
+   ================================================================ */
+const Ambient = {
+  ctx:null, master:null, analyser:null, channels:{}, binNodes:null,
+  binBeat:10, binBase:200, binOn:false,
+  timerId:null, timerEnd:0,
+  ensure(){
+    if(this.ctx){ if(this.ctx.state==='suspended') this.ctx.resume().catch(()=>{}); return this.ctx; }
+    try{
+      this.ctx=new (window.AudioContext||window.webkitAudioContext)();
+      this.master=this.ctx.createGain(); this.master.gain.value=.8;
+      this.analyser=this.ctx.createAnalyser(); this.analyser.fftSize=128;
+      this.master.connect(this.analyser); this.analyser.connect(this.ctx.destination);
+    }catch(e){}
+    return this.ctx;
+  },
+  noiseBuffer(){
+    const c=this.ctx, len=c.sampleRate*2, buf=c.createBuffer(1,len,c.sampleRate), d=buf.getChannelData(0);
+    for(let i=0;i<len;i++) d[i]=Math.random()*2-1;
+    return buf;
+  },
+  startChannel(id,vol){
+    const c=this.ensure(); if(!c) return;
+    this.stopChannel(id);
+    const nodes={id,gain:c.createGain()};
+    nodes.gain.gain.value=0;
+    nodes.gain.connect(this.master);
+    const now=c.currentTime;
+    if(id==='rain'){
+      nodes.src=c.createBufferSource(); nodes.src.buffer=this.noiseBuffer(); nodes.src.loop=true;
+      nodes.f=c.createBiquadFilter(); nodes.f.type='bandpass'; nodes.f.frequency.value=1400; nodes.f.Q.value=.6;
+      nodes.src.connect(nodes.f); nodes.f.connect(nodes.gain);
+    }else if(id==='ocean'){
+      nodes.src=c.createBufferSource(); nodes.src.buffer=this.noiseBuffer(); nodes.src.loop=true;
+      nodes.f=c.createBiquadFilter(); nodes.f.type='lowpass'; nodes.f.frequency.value=420;
+      nodes.lfo=c.createOscillator(); nodes.lfo.frequency.value=.14;
+      nodes.lfoG=c.createGain(); nodes.lfoG.gain.value=.5;
+      nodes.lfo.connect(nodes.lfoG); nodes.lfoG.connect(nodes.gain.gain);
+      nodes.src.connect(nodes.f); nodes.f.connect(nodes.gain); nodes.lfo.start();
+    }else if(id==='fire'){
+      nodes.src=c.createBufferSource(); nodes.src.buffer=this.noiseBuffer(); nodes.src.loop=true;
+      nodes.f=c.createBiquadFilter(); nodes.f.type='lowpass'; nodes.f.frequency.value=260; nodes.f.Q.value=1.2;
+      nodes.lfo=c.createOscillator(); nodes.lfo.frequency.value=2.2;
+      nodes.lfoG=c.createGain(); nodes.lfoG.gain.value=90;
+      nodes.lfo.connect(nodes.lfoG); nodes.lfoG.connect(nodes.f.frequency);
+      nodes.src.connect(nodes.f); nodes.f.connect(nodes.gain); nodes.lfo.start();
+    }else if(id==='forest'){
+      nodes.src=c.createBufferSource(); nodes.src.buffer=this.noiseBuffer(); nodes.src.loop=true;
+      nodes.f=c.createBiquadFilter(); nodes.f.type='highpass'; nodes.f.frequency.value=2400;
+      const g2=c.createGain(); g2.gain.value=.28;
+      nodes.src.connect(nodes.f); nodes.f.connect(g2); g2.connect(nodes.gain);
+    }else if(id==='noise'){
+      nodes.src=c.createBufferSource(); nodes.src.buffer=this.noiseBuffer(); nodes.src.loop=true;
+      nodes.src.connect(nodes.gain);
+    }
+    if(nodes.src) nodes.src.start();
+    this.channels[id]=nodes;
+    this.setVol(id,vol);
+  },
+  setVol(id,v){
+    const n=this.channels[id]; if(!n||!this.ctx) return;
+    n.gain.gain.setTargetAtTime(v*.5,this.ctx.currentTime,.1);
+  },
+  stopChannel(id){
+    const n=this.channels[id]; if(!n) return;
+    try{ n.src && n.src.stop(); n.lfo && n.lfo.stop(); }catch(e){}
+    try{ n.gain.disconnect(); }catch(e){}
+    delete this.channels[id];
+  },
+  stopAll(){ Object.keys(this.channels).forEach(id=>this.stopChannel(id)); this.stopBin(); },
+  updateBin(){
+    if(this.binOn) this.startBin();
+  },
+  startBin(){
+    const c=this.ensure(); if(!c) return;
+    this.stopBin();
+    const merge=c.createStereoPanner ? null : null;
+    const L=c.createOscillator(), R=c.createOscillator(),
+      lg=c.createGain(), rg=c.createGain(),
+      lp=c.createStereoPanner(), rp=c.createStereoPanner();
+    L.frequency.value=this.binBase; R.frequency.value=this.binBase+this.binBeat;
+    lg.gain.value=.14; rg.gain.value=.14;
+    lp.pan.value=-1; rp.pan.value=1;
+    L.connect(lg); lg.connect(lp); lp.connect(this.master);
+    R.connect(rg); rg.connect(rp); rp.connect(this.master);
+    L.start(); R.start();
+    this.binNodes={L,R,lg,rg};
+  },
+  stopBin(){
+    if(!this.binNodes) return;
+    try{ this.binNodes.L.stop(); this.binNodes.R.stop(); }catch(e){}
+    this.binNodes=null;
+  },
+  /* 呼吸/冥想单环境音（低音量叠加） */
+  setAmbientFor(id){
+    this.ambientId=id;
+    Object.keys(this.channels).forEach(k=>{ if(k!==id && !App.soundMixerState[k]) this.stopChannel(k); });
+    if(id && id!=='none' && !this.channels[id]) this.startChannel(id,.35);
+  },
+  ambientId:'none',
+  /* 定时关闭 */
+  setTimer(min){
+    clearInterval(this.timerId);
+    if(!min){ this.timerEnd=0; App.updateTimerStatus(); return; }
+    this.timerEnd=Date.now()+min*60000;
+    this.timerId=setInterval(()=>{
+      if(Date.now()>=this.timerEnd){
+        this.stopAll(); this.timerEnd=0; clearInterval(this.timerId);
+        App.soundMixerState={}; App.renderMixer(); App.updateTimerStatus();
+        showToast('😴 定时关闭，晚安');
+      } else App.updateTimerStatus();
+    },1000);
+  },
+};
+
+/* ================================================================
+   SECTION: js-voice — 语音合成（Web Speech API）
+   ================================================================ */
+const Voice = {
+  supported(){ return 'speechSynthesis' in window; },
+  speak(text,rate=.85){
+    if(!this.supported()) return;
+    try{
+      speechSynthesis.cancel();
+      const u=new SpeechSynthesisUtterance(text);
+      u.lang = LANG==='zh'?'zh-CN':(LANG==='ja'?'ja-JP':'en-US');
+      u.rate=rate; u.pitch=1; u.volume=Config.get('volume');
+      speechSynthesis.speak(u);
+    }catch(e){}
+  },
+  stop(){ try{ this.supported() && speechSynthesis.cancel(); }catch(e){} },
+};
+
+/* ================================================================
+   SECTION: js-bgfx — 动态背景（星空/海浪/森林）
+   ================================================================ */
+const BGFX = {
+  canvas:null,ctx:null,mode:'stars',raf:null,
+  stars:[],waves:[],leaves:[],t:0,
+  init(){
+    this.canvas=document.getElementById('bg-canvas');
+    this.ctx=this.canvas.getContext('2d');
+    this.resize();
+    window.addEventListener('resize',()=>this.resize());
+    this.seed();
+    this.loop();
+  },
+  resize(){ this.canvas.width=innerWidth; this.canvas.height=innerHeight; this.seed(); },
+  seed(){
+    const w=this.canvas.width,h=this.canvas.height;
+    this.stars=Array.from({length:Math.min(160,w*h/12000)},()=>({
+      x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.6+.3,
+      tw:Math.random()*2+1,ph:Math.random()*Math.PI*2,drift:(Math.random()-.5)*.06}));
+    this.waves=Array.from({length:5},(_,i)=>({amp:14+i*7,len:220-i*18,sp:.4+i*.14,off:i*40,y0:h*.62+i*34,alpha:.16-i*.024}));
+    this.leaves=Array.from({length:Math.min(26,w/50)},()=>({
+      x:Math.random()*w,y:Math.random()*h,s:6+Math.random()*10,vy:.3+Math.random()*.7,
+      sw:Math.random()*2*Math.PI,sws:.01+Math.random()*.02,hue:100+Math.random()*40}));
+  },
+  setMode(m){ this.mode=m; },
+  loop(){
+    const c=this.ctx,w=this.canvas.width,h=this.canvas.height;
+    this.t+=.016;
+    c.clearRect(0,0,w,h);
+    const light=document.documentElement.dataset.theme==='light';
+    if(this.mode==='stars'){
+      this.stars.forEach(s=>{
+        s.ph+=.02*s.tw; s.x+=s.drift;
+        if(s.x<0)s.x=w; if(s.x>w)s.x=0;
+        const a=(Math.sin(s.ph)+1)/2*(light?.5:.9);
+        c.globalAlpha=a;
+        c.fillStyle=light?'#5b8cff':'#cfe0ff';
+        c.beginPath(); c.arc(s.x,s.y,s.r,0,7); c.fill();
+      });
+      // 流星
+      if(Math.random()<.003){
+        const mx=Math.random()*w,my=Math.random()*h*.4;
+        c.globalAlpha=light?.3:.7;
+        const g=c.createLinearGradient(mx,my,mx-140,my+70);
+        g.addColorStop(0,'#fff'); g.addColorStop(1,'transparent');
+        c.strokeStyle=g;c.lineWidth=1.4;
+        c.beginPath();c.moveTo(mx,my);c.lineTo(mx-140,my+70);c.stroke();
+      }
+    }else if(this.mode==='ocean'){
+      this.waves.forEach(wv=>{
+        c.globalAlpha=wv.alpha*(light?1.4:1);
+        c.fillStyle=light?'#5b8cff':'#3b6fd4';
+        c.beginPath();
+        c.moveTo(0,h);
+        for(let x=0;x<=w;x+=8){
+          const y=wv.y0+Math.sin(x/wv.len+this.t*wv.sp)*wv.amp+Math.sin(x/37+this.t*.6)*4;
+          c.lineTo(x,y);
+        }
+        c.lineTo(w,h); c.closePath(); c.fill();
+      });
+    }else if(this.mode==='forest'){
+      // 顶部光晕
+      c.globalAlpha=.06;
+      const rg=c.createRadialGradient(w*.75,0,40,w*.75,0,h*.7);
+      rg.addColorStop(0,'#9fe8b8'); rg.addColorStop(1,'transparent');
+      c.fillStyle=rg; c.fillRect(0,0,w,h);
+      this.leaves.forEach(l=>{
+        l.y+=l.vy; l.sw+=l.sws;
+        l.x+=Math.sin(l.sw)*.6;
+        if(l.y>h+12){ l.y=-12; l.x=Math.random()*w; }
+        c.globalAlpha=light?.5:.4;
+        c.fillStyle=`hsl(${l.hue},55%,55%)`;
+        c.save(); c.translate(l.x,l.y); c.rotate(l.sw);
+        c.beginPath(); c.ellipse(0,0,l.s*.5,l.s*.24,0,0,7); c.fill();
+        c.restore();
+      });
+    }
+    c.globalAlpha=1;
+    this.raf=requestAnimationFrame(()=>this.loop());
+  }
+};
+
+/* ================================================================
+   SECTION: js-particles — 粒子特效
+   ================================================================ */
+const Particles = {
+  canvas:null,ctx:null,list:[],
+  init(){
+    this.canvas=document.getElementById('particle-canvas');
+    this.ctx=this.canvas.getContext('2d');
+    this.resize();
+    window.addEventListener('resize',()=>this.resize());
+    this.loop();
+  },
+  resize(){ this.canvas.width=innerWidth; this.canvas.height=innerHeight; },
+  burst(x,y,count=15,color=null){
+    if(!Config.get('particles')) return;
+    color=color||SKINS[Config.get('skin')]?.accent||'#5b8cff';
+    for(let i=0;i<count;i++){
+      const a=Math.random()*Math.PI*2,sp=2+Math.random()*5;
+      this.list.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,
+        size:3+Math.random()*5,color,alpha:1,decay:.015+Math.random()*.02});
+    }
+  },
+  confetti(){
+    const colors=['#FFD700','#ff6ec7','#4dd7ff','#2ed8a3','#a29bfe','#ff9d5c'];
+    for(let i=0;i<90;i++){
+      this.list.push({x:Math.random()*innerWidth,y:-20-Math.random()*120,
+        vx:(Math.random()-.5)*2,vy:2+Math.random()*3.5,
+        size:4+Math.random()*6,color:colors[i%colors.length],alpha:1,decay:.004,confetti:true,rot:Math.random()*6});
+    }
+  },
+  loop(){
+    const c=this.ctx;
+    c.clearRect(0,0,this.canvas.width,this.canvas.height);
+    this.list=this.list.filter(p=>{
+      p.x+=p.vx; p.y+=p.vy;
+      p.vy+=p.confetti?.02:.1;
+      p.alpha-=p.decay;
+      if(p.alpha<=0) return false;
+      c.globalAlpha=p.alpha;
+      c.fillStyle=p.color;
+      if(p.confetti){
+        p.rot+=.1;
+        c.save();c.translate(p.x,p.y);c.rotate(p.rot);c.fillRect(-p.size/2,-p.size/4,p.size,p.size/2);c.restore();
+      }else{
+        c.beginPath();c.arc(p.x,p.y,p.size,0,7);c.fill();
+      }
+      return true;
+    });
+    c.globalAlpha=1;
+    requestAnimationFrame(()=>this.loop());
+  }
+};
+
+/* ================================================================
+   SECTION: js-ui-tools — Toast / 浮动文字 / 震动 / 简易图表
+   ================================================================ */
+function showToast(msg,color){
+  const el=document.createElement('div');
+  el.className='toast'; el.textContent=msg;
+  if(color) el.style.borderLeft=`3px solid ${color}`;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(()=>el.remove(),2700);
+}
+function showFloatingText(text,x,y,color='#FFD700'){
+  const el=document.createElement('div');
+  el.className='floating-text'; el.textContent=text;
+  el.style.left=x+'px'; el.style.top=y+'px'; el.style.color=color;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),1500);
+}
+function vibrate(ms=50){ if(Config.get('vibrate')&&navigator.vibrate){ try{navigator.vibrate(ms);}catch(e){} } }
+
+/* 简易 SVG 图表（内联实现，无外部依赖） */
+const MiniChart = {
+  line(data,labels,color='#5b8cff',h=120){
+    const w=560,max=Math.max(...data,1);
+    const pts=data.map((v,i)=>{
+      const x=data.length>1?(i/(data.length-1))*w:w/2;
+      const y=h-8-(v/max)*(h-28);
+      return [x,y];
+    });
+    const path=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+    const area=path+` L${pts[pts.length-1][0]} ${h} L${pts[0][0]} ${h} Z`;
+    let dots=pts.map((p,i)=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3.4" fill="${color}" stroke="#fff" stroke-width="1.2"><title>${labels[i]??''}: ${data[i]}</title></circle>`).join('');
+    let xl='';
+    if(labels) labels.forEach((l,i)=>{ if(labels.length<=10||i%Math.ceil(labels.length/10)===0) xl+=`<text x="${pts[i][0].toFixed(1)}" y="${h-1}" font-size="9" fill="currentColor" opacity=".55" text-anchor="middle">${l}</text>`; });
+    return `<svg viewBox="0 0 ${w} ${h}" class="chart-svg" style="color:var(--text-secondary)">
+      <path d="${area}" fill="${color}" opacity=".14"/>
+      <path d="${path}" fill="none" stroke="${color}" stroke-width="2.2" stroke-linecap="round"/>
+      ${dots}${xl}</svg>`;
+  },
+  bars(data,labels,color='#5b8cff',h=110){
+    const w=560,max=Math.max(...data,1),bw=Math.min(28,w/data.length*.62);
+    let bars='',xl='';
+    data.forEach((v,i)=>{
+      const x=(i+.5)*(w/data.length)-bw/2;
+      const bh=(v/max)*(h-24);
+      bars+=`<rect x="${x.toFixed(1)}" y="${h-14-bh}" width="${bw.toFixed(1)}" height="${Math.max(bh,2)}" rx="3" fill="${color}" opacity="${v>0?.85:.25}"><title>${labels[i]??''}: ${v}</title></rect>`;
+      if(labels&&(data.length<=10||i%Math.ceil(data.length/10)===0))
+        xl+=`<text x="${(x+bw/2).toFixed(1)}" y="${h-2}" font-size="9" fill="currentColor" opacity=".55" text-anchor="middle">${labels[i]}</text>`;
+    });
+    return `<svg viewBox="0 0 ${w} ${h}" class="chart-svg" style="color:var(--text-secondary)">${bars}${xl}</svg>`;
+  },
+  doughnut(dist,size=150){
+    const entries=Object.entries(dist);
+    const total=entries.reduce((s,e)=>s+e[1],0)||1;
+    const r=size/2-6,cx=size/2,cy=size/2;
+    let angle=-Math.PI/2,segs='',legend='';
+    entries.forEach(([name,v])=>{
+      const tag=EMOTION_TAGS.find(t=>t.name===name);
+      const col=tag?.color||'#888';
+      const frac=v/total, end=angle+frac*Math.PI*2;
+      const large=frac>.5?1:0;
+      const x1=cx+r*Math.cos(angle),y1=cy+r*Math.sin(angle);
+      const x2=cx+r*Math.cos(end),y2=cy+r*Math.sin(end);
+      if(entries.length===1) segs+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${col}" stroke-width="16"/>`;
+      else segs+=`<path d="M${cx} ${cy} L${x1.toFixed(1)} ${y1.toFixed(1)} A${r} ${r} 0 ${large} 1 ${x2.toFixed(1)} ${y2.toFixed(1)} Z" fill="${col}" opacity=".85"><title>${name}: ${v}</title></path>`;
+      legend+=`<span class="tag" style="background:${col}22;color:${col};margin:2px">${tag?.icon||'❓'} ${name} ${v}</span>`;
+      angle=end;
+    });
+    return `<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+      <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="flex-shrink:0">${segs}
+        <circle cx="${cx}" cy="${cy}" r="${r*.55}" fill="var(--glass-bg)"/></svg>
+      <div style="flex:1;min-width:150px">${legend}</div></div>`;
+  },
+  moodLine(data,size){
+    // 1-5 心情曲线，缺失为 null
+    const w=560,h=130;
+    const pts=data.map((d,i)=>d.v==null?null:[data.length>1?(i/(data.length-1))*w:w/2, h-20-((d.v-1)/4)*(h-44)]);
+    const valid=pts.filter(p=>p);
+    if(valid.length<2) return `<div class="empty-tip">记录更多心情后这里会出现曲线 📈</div>`;
+    const path=valid.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+    const dots=pts.map((p,i)=>p?`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3.6" fill="var(--accent)" stroke="#fff" stroke-width="1.2"/>`:``).join('');
+    return `<svg viewBox="0 0 ${w} ${h}" class="chart-svg" style="color:var(--text-secondary)">
+      <path d="${path}" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="${valid.length<3?'':'none'}"/>
+      ${dots}</svg>`;
+  }
+};
+/* ================================================================
+   SECTION: js-tutorial — 新手引导
+   ================================================================ */
+const Tutorial = {
+  steps:[
+    {icon:'🧘',title:'欢迎来到 ZenClicker Pro',text:'这是你的数字疗愈工作台。释放情绪、正念冥想、专注工作，都会在这里变成可见的成长。'},
+    {icon:'💥',title:'释放你的情绪',text:'在「释放」页选择一个情绪标签，然后用力点击按钮！连续快速点击还能触发连击加成，获得额外能量。'},
+    {icon:'🧘',title:'冥想与呼吸',text:'「智能冥想」会根据场景用语音引导你；「呼吸练习」用圆圈节奏带你调整呼吸。都可以搭配环境音。'},
+    {icon:'📔',title:'记录心情',text:'每天在「情绪日志」记下心情，日历会涂上情绪色。也可以直接写一句话，AI 帮你归类情绪。'},
+    {icon:'⚡',title:'升级与宠物',text:'所有行为都会获得经验值和能量：等级提升、解锁成就、喂养你的情绪宠物、完成每日任务领奖励。'},
+  ],
+  idx:0,
+  show(){ this.idx=0; document.getElementById('tutorial').classList.add('open'); this.render(); },
+  render(){
+    const s=this.steps[this.idx];
+    document.getElementById('tut-icon').textContent=s.icon;
+    document.getElementById('tut-title').textContent=s.title;
+    document.getElementById('tut-text').textContent=s.text;
+    document.getElementById('tut-dots').innerHTML=this.steps.map((_,i)=>
+      `<span style="width:7px;height:7px;border-radius:50%;background:${i===this.idx?'var(--accent)':'var(--border)'}"></span>`).join('');
+    document.getElementById('tut-next').textContent=this.idx===this.steps.length-1?'开始体验 🎉':'下一步';
+  },
+  next(){
+    if(this.idx<this.steps.length-1){ this.idx++; this.render(); }
+    else this.skip();
+  },
+  skip(){
+    document.getElementById('tutorial').classList.remove('open');
+    Config.set('firstRun',false);
+  }
+};
+
+/* ================================================================
+   SECTION: js-app — 主应用（核心）
+   ================================================================ */
+const App = {
+  currentPage:'dashboard',
+  selectedEmotion:'未标记',
+  /* clicker */
+  clickerPlaying:false,clickerCount:0,clickerTimeLeft:10,clickerTimer:null,
+  /* release combo */
+  comboCount:0,lastReleaseAt:0,comboTimer:null,
+  /* breath */
+  breathRunning:false,breathPhaseIdx:0,breathPhaseElapsed:0,breathCyclesDone:0,
+  breathCurrentScale:.45,breathStartScale:.45,breathRAF:null,breathLastTick:0,
+  /* meditate */
+  medRunning:false,medRemaining:0,medTotal:0,medTimer:null,medVoiceIdx:0,medVoiceTimer:null,
+  /* pomodoro */
+  pomoRunning:false,pomoIsBreak:false,pomoRemaining:25*60,pomoTotalSeconds:25*60,pomoTimer:null,
+  /* calendar */
+  calYear:0,calMonth:0,
+  /* journal */
+  selectedMood:0,journalPhotoData:null,
+  /* sound mixer */
+  soundMixerState:{},
+  /* pwa */
+  deferredPrompt:null,
+  /* hotkey capture */
+  hotkeyCapture:null,
+
+  /* ---------- 初始化 ---------- */
+  async init(){
+    Config.init();
+    LANG=Config.get('lang')||'zh';
+    await DB.init();
+    SoundEngine.init();
+    BGFX.init();
+    Particles.init();
+    this.buildNav();
+    this.buildEmotionTags();
+    this.applyTheme(Config.get('theme'));
+    this.applySkin(Config.get('skin'));
+    this.applyFontScale();
+    this.initSettings();
+    this.initBreath();
+    this.initPomo();
+    this.initMeditate();
+    this.initSound();
+    this.initJournal();
+    this.initSocial();
+    this.initDashboard();
+    this.setupHotkeys();
+    this.setupGestures();
+    this.setupPWA();
+    this.setupReminder();
+    this.updateTopbar();
+    this.showPage('dashboard');
+    applyI18n();
+    if(Config.get('firstRun')) Tutorial.show();
+    document.addEventListener('click',()=>SoundEngine.ensure(),{once:true});
+    document.addEventListener('touchstart',()=>SoundEngine.ensure(),{once:true});
+  },
+
+  /* ---------- 导航 ---------- */
+  buildNav(){
+    const sidebar=document.getElementById('sidebar-nav');
+    const bottom=document.getElementById('bottom-nav');
+    sidebar.innerHTML=''; bottom.innerHTML='';
+    NAV_ITEMS.forEach(item=>{
+      const b=document.createElement('button');
+      b.className='nav-btn'; b.dataset.page=item.id;
+      b.innerHTML=`<span class="nav-icon">${item.icon}</span><span data-i18n="nav_${item.id}">${item.label}</span>`;
+      b.onclick=()=>this.showPage(item.id);
+      sidebar.appendChild(b);
+    });
+    const mobileIds=[...MOBILE_MAIN,'settings'];
+    mobileIds.forEach(id=>{
+      const item=NAV_ITEMS.find(n=>n.id===id);
+      const b=document.createElement('button');
+      b.className='bnav-btn'; b.dataset.page=id;
+      b.innerHTML=`<span class="bnav-icon">${item.icon}</span><span data-i18n="nav_${id}">${item.label}</span>`;
+      b.onclick=()=>{
+        if(window.innerWidth<=820 && id==='settings'){ this.openSheet(); return; }
+        this.showPage(id);
+      };
+      bottom.appendChild(b);
+    });
+  },
+  openSheet(){
+    const body=document.getElementById('sheet-body');
+    body.innerHTML='';
+    NAV_ITEMS.forEach(item=>{
+      const b=document.createElement('button');
+      b.className='sheet-item';
+      b.innerHTML=`<span>${item.icon}</span><span data-i18n="nav_${item.id}">${item.label}</span>`;
+      b.onclick=()=>{ this.closeSheet(); this.showPage(item.id); };
+      body.appendChild(b);
+    });
+    document.getElementById('action-sheet').classList.add('open');
+    applyI18n();
+  },
+  closeSheet(){ document.getElementById('action-sheet').classList.remove('open'); },
+  showPage(id){
+    this.currentPage=id;
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    const pg=document.getElementById('page-'+id);
+    if(pg) pg.classList.add('active');
+    document.querySelectorAll('.nav-btn,.bnav-btn').forEach(b=>b.classList.toggle('active',b.dataset.page===id));
+    document.getElementById('page-container').scrollTop=0;
+    if(id==='dashboard') this.refreshDashboard();
+    if(id==='stats') this.refreshStats();
+    if(id==='achievements') this.renderAchievements();
+    if(id==='settings') this.renderSettings();
+    if(id==='journal'){ this.renderCalendar(); this.renderJournalList(); this.renderMoodTrend(); }
+    if(id==='social') this.renderSocial();
+    if(id==='pomodoro') this.renderPomoAnalytics();
+    if(id==='report') this.renderAIInsight();
+  },
+
+  /* ---------- 主题 / 皮肤 / 字号 / 语言 ---------- */
+  applyTheme(mode){
+    let m=mode;
+    if(mode==='auto'){
+      m=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';
+    }
+    document.documentElement.dataset.theme=m;
+    Config.set('theme',mode);
+    const mc=document.querySelector('meta[name="theme-color"]');
+    if(mc) mc.content=m==='light'?'#eef2fb':'#0b0e1a';
+    BGFX.setMode(Config.get('bgAnim'));
+  },
+  applySkin(id){
+    const s=SKINS[id]||SKINS.default;
+    document.documentElement.style.setProperty('--accent',s.accent);
+    document.documentElement.style.setProperty('--accent-rgb',s.rgb);
+    Config.set('skin',id);
+  },
+  applyGradient(g){
+    Config.set('gradient',g);
+    const grad=GRADIENTS[g];
+    document.body.style.backgroundImage=grad&&grad.css?grad.css:'';
+  },
+  applyFontScale(){
+    document.documentElement.style.setProperty('--fscale',Config.get('fontScale'));
+  },
+
+  /* ---------- 游戏化：经验/等级/能量/宠物/任务 ---------- */
+  addXP(n){
+    let xp=Config.get('xp')+n;
+    let level=Config.get('level');
+    let leveled=false;
+    while(level<10 && xp>=LEVEL_XP(level)){ xp-=LEVEL_XP(level); level++; leveled=true; }
+    if(level>=10) xp=Math.min(xp,LEVEL_XP(9));
+    Config.set('xp',xp); Config.set('level',level);
+    this.updateTopbar();
+    if(leveled){
+      showToast(`🎉 ${T('level_up')}！Lv.${level} ${LEVELS[level-1]}`,'#FFD700');
+      SoundEngine.play('crystal');
+      Particles.confetti();
+      this.checkAchievements();
+    }
+  },
+  addEnergy(n){
+    Config.set('energy',Config.get('energy')+n);
+    Config.set('energyEarned',Config.get('energyEarned')+Math.max(0,n));
+    this.updateTopbar();
+  },
+  spendEnergy(n){
+    if(Config.get('energy')<n){ showToast(`⚡ 能量不足（需要 ${n}）`,'#FF6B6B'); return false; }
+    Config.set('energy',Config.get('energy')-n);
+    this.updateTopbar();
+    return true;
+  },
+  updateTopbar(){
+    const level=Config.get('level'),xp=Config.get('xp');
+    document.getElementById('tb-level-badge').textContent=`Lv.${level} ${LEVELS[level-1]||''}`;
+    const need=LEVEL_XP(level);
+    document.getElementById('tb-xp-fill').style.width=(level>=10?100:Math.min(100,xp/need*100))+'%';
+    document.getElementById('tb-energy').textContent=Config.get('energy');
+    document.getElementById('tb-streak').textContent=DB.getStreak();
+    const skinE=document.getElementById('skin-energy');
+    if(skinE) skinE.textContent=Config.get('energy');
+  },
+  showCombo(c){
+    const el=document.getElementById('tb-combo');
+    document.getElementById('tb-combo-n').textContent=c;
+    el.classList.toggle('on',c>=2);
+  },
+  /* 宠物 */
+  petType(){
+    const dist=DB.getEmotionDist(30);
+    let heal=0,vital=0,calm=0;
+    Object.entries(dist).forEach(([name,n])=>{
+      const tag=EMOTION_TAGS.find(t=>t.name===name);
+      if(!tag) return;
+      if(tag.cat==='positive') heal+=n;
+      else if(tag.cat==='negative') vital+=n;
+      else calm+=n;
+    });
+    if(!heal&&!vital&&!calm) return null;
+    if(heal>=vital&&heal>=calm) return 'heal';
+    if(vital>=calm) return 'vital';
+    return 'calm';
+  },
+  renderPet(){
+    const xp=Config.get('petXP');
+    const avatar=document.getElementById('pet-avatar');
+    const name=document.getElementById('pet-name');
+    const sub=document.getElementById('pet-sub');
+    const type=this.petType();
+    let stageIdx=0;
+    PET_STAGES.forEach((s,i)=>{ if(xp>=s.xp) stageIdx=i; });
+    if(!type){
+      avatar.textContent='🥚'; name.textContent='未孵化的蛋';
+      sub.textContent='释放情绪就能喂养小宠物（经验 '+xp+'）';
+    }else{
+      const pt=PET_TYPES[type];
+      const stages=['🥚','🐣','✨','🌟','👑'];
+      avatar.textContent=stageIdx===0?'🥚':pt.icon;
+      name.textContent=pt.name+' · '+PET_STAGES[stageIdx].stage;
+      const next=PET_STAGES[stageIdx+1];
+      sub.textContent=next?`距离下一阶段还需 ${next.xp-xp} 经验`:'已达最高形态，闪闪发光！';
+    }
+    document.getElementById('pet-xp-fill').style.width=Math.min(100,xp/PET_STAGES[PET_STAGES.length-1].xp*100)+'%';
+  },
+  petFeed(){
+    if(!this.spendEnergy(5)){ return; }
+    Config.set('petXP',Config.get('petXP')+8);
+    this.renderPet();
+    SoundEngine.play('pop');
+    showToast('🍬 宠物吃得很开心！+8 经验','#2ed8a3');
+    this.checkAchievements();
+  },
+  petInteract(){
+    vibrate(20); SoundEngine.play('pop');
+    const av=document.getElementById('pet-avatar');
+    av.style.transform='scale(1.3) rotate(8deg)';
+    setTimeout(()=>av.style.transform='',300);
+  },
+  /* 每日任务 */
+  getQuestState(){
+    let q=Config.get('questState');
+    const today=Config.todayKey();
+    if(q.date!==today){ q={date:today,progress:{},claimed:{}}; Config.set('questState',q); }
+    return q;
+  },
+  questProgress(metric,delta=1){
+    const q=this.getQuestState();
+    q.progress[metric]=(q.progress[metric]||0)+delta;
+    Config.set('questState',q);
+    this.checkQuests();
+  },
+  checkQuests(){
+    const q=this.getQuestState();
+    QUESTS.forEach(qs=>{
+      const p=q.progress[qs.metric]||0;
+      if(p>=qs.target && !q.claimed[qs.id] && q.notified?.[qs.id]!==true){
+        q.notified=q.notified||{};
+        q.notified[qs.id]=true;
+        Config.set('questState',q);
+        showToast(`✅ ${T('quest_done')}：${qs.name}`,'#2ed8a3');
+      }
+    });
+    if(this.currentPage==='dashboard') this.renderQuests();
+  },
+  claimQuest(id){
+    const q=this.getQuestState();
+    const qs=QUESTS.find(x=>x.id===id);
+    const p=q.progress[qs.metric]||0;
+    if(p>=qs.target && !q.claimed[id]){
+      q.claimed[id]=true; Config.set('questState',q);
+      this.addEnergy(qs.reward);
+      showToast(`⚡ +${qs.reward} ${T('energy')}！${T('claimed')}`,'#FFD700');
+      SoundEngine.play('crystal');
+      this.renderQuests();
+    }
+  },
+  renderQuests(){
+    const q=this.getQuestState();
+    const list=document.getElementById('quest-list');
+    if(!list) return;
+    list.innerHTML='';
+    let done=0;
+    QUESTS.forEach(qs=>{
+      const p=Math.min(qs.target,q.progress[qs.metric]||0);
+      const claimed=q.claimed[qs.id];
+      if(claimed) done++;
+      const row=document.createElement('div');
+      row.className='quest-item';
+      row.innerHTML=`
+        <span style="font-size:20px">${qs.icon}</span>
+        <div class="quest-info">
+          <div class="quest-name">${qs.name}</div>
+          <div class="progress-bar" style="margin-top:4px"><div class="fill" style="width:${p/qs.target*100}%"></div></div>
+          <div class="quest-prog">${p}/${qs.target} · 奖励 ⚡${qs.reward}</div>
+        </div>`;
+      const btn=document.createElement('button');
+      if(claimed){ btn.className='btn btn-secondary btn-sm'; btn.disabled=true; btn.textContent='✓ 已领取'; }
+      else if(p>=qs.target){ btn.className='btn btn-gold btn-sm'; btn.textContent='领取'; btn.onclick=()=>this.claimQuest(qs.id); }
+      else{ btn.className='btn btn-secondary btn-sm'; btn.disabled=true; btn.textContent='进行中'; }
+      row.appendChild(btn);
+      list.appendChild(row);
+    });
+    document.getElementById('quest-summary').textContent=`已完成 ${done}/${QUESTS.length}`;
+  },
+
+  /* ---------- 仪表盘 ---------- */
+  initDashboard(){
+    this.calYear=new Date().getFullYear();
+    this.calMonth=new Date().getMonth();
+  },
+  refreshDashboard(){
+    // 概览
+    const today=DB.getToday(),streak=DB.getStreak(),total=DB.getTotal();
+    const pomoN=DB.pomosToday().length,medMin=DB.medTodayMinutes();
+    document.getElementById('dash-stats').innerHTML=`
+      <div class="stat-card"><div class="stat-value">${today}</div><div class="stat-label">${T('today')} ${T('released')}</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:#FFD700">${streak}</div><div class="stat-label">${T('streak_d')}</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:#2ed8a3">${pomoN}</div><div class="stat-label">${T('today_focus')}</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:#a29bfe">${medMin}</div><div class="stat-label">${T('med_min')}</div></div>`;
+    // 健康指数
+    const jr=DB.journalToday();
+    const moodAvg=jr.length?jr.reduce((s,j)=>s+j.mood,0)/jr.length:3;
+    const dist7=DB.getEmotionDist(7);
+    let neg=0,pos=0;
+    Object.entries(dist7).forEach(([n,c])=>{
+      const t=EMOTION_TAGS.find(x=>x.name===n);
+      if(t?.cat==='negative') neg+=c; else if(t?.cat==='positive') pos+=c;
+    });
+    const emoRatio=(neg+pos)?pos/(neg+pos):.5;
+    const relScore=Math.min(100,today*10);
+    const medScore=Math.min(100,medMin*12);
+    const streakScore=Math.min(100,streak*12);
+    const health=Math.round(
+      moodAvg/5*30 + emoRatio*25 + relScore/100*15 + medScore/100*15 + streakScore/100*15
+    );
+    const circ=2*Math.PI*56;
+    document.getElementById('health-score').textContent=health;
+    const ring=document.getElementById('health-ring-circle');
+    ring.style.strokeDashoffset=circ*(1-health/100);
+    ring.style.stroke=health>=70?'#2ed8a3':health>=40?'#f0c34e':'#ff6b6b';
+    document.getElementById('health-breakdown').innerHTML=`
+      📝 心情均值 <b>${moodAvg.toFixed(1)}/5</b> · 占比 30%<br>
+      🌈 积极情绪占比 <b>${Math.round(emoRatio*100)}%</b> · 占比 25%<br>
+      💥 释放活跃度 <b>${relScore}</b>/100 · 冥想投入 <b>${medScore}</b>/100<br>
+      🔥 坚持指数 <b>${streakScore}</b>/100（连续 ${streak} 天）`;
+    // 建议
+    const sugg=[];
+    if(today===0) sugg.push(['💥','今天还没有释放过情绪，点几下把压力放出来吧。']);
+    if(health<40) sugg.push(['🌬️','情绪健康指数偏低，建议做一次 5 分钟冥想或呼吸练习。']);
+    if(neg>pos*2 && neg>=3) sugg.push(['⚠️','近 7 天负面情绪占比较高，试试「放松」场景冥想。']);
+    if(medMin===0) sugg.push(['🧘','今天还没冥想，3 分钟也可以为大脑充电。']);
+    if(pomoN>=Config.get('pomoGoal')) sugg.push(['🎉','今日番茄目标已达成！记得适当休息。']);
+    if(!sugg.length) sugg.push(['🌿','状态不错，保持这个节奏就好。']);
+    document.getElementById('suggest-list').innerHTML=sugg.slice(0,4)
+      .map(s=>`<div class="suggest-item"><span>${s[0]}</span><span>${s[1]}</span></div>`).join('');
+    // 心情曲线
+    document.getElementById('dash-mood-chart').innerHTML=MiniChart.moodLine(DB.journalDailyAvg(7));
+    this.renderQuests();
+    this.renderPet();
+  },
+
+  /* ---------- 情绪释放 ---------- */
+  buildEmotionTags(){
+    const container=document.getElementById('emotion-tags');
+    container.innerHTML='';
+    const tags=[...EMOTION_TAGS,...Config.get('customEmotions')];
+    tags.forEach(tag=>{
+      const btn=document.createElement('button');
+      btn.className='emotion-tag'+(tag.name===this.selectedEmotion?' selected':'');
+      btn.textContent=`${tag.icon} ${tag.name}`;
+      if(tag.name===this.selectedEmotion){ btn.style.background=tag.color; btn.style.borderColor=tag.color; }
+      btn.onclick=()=>{
+        this.selectedEmotion=tag.name;
+        container.querySelectorAll('.emotion-tag').forEach(b=>{b.classList.remove('selected');b.style.background='';b.style.borderColor='';});
+        btn.classList.add('selected'); btn.style.background=tag.color; btn.style.borderColor=tag.color;
+        SoundEngine.play('pop'); vibrate(20);
+      };
+      container.appendChild(btn);
+    });
+    document.getElementById('release-count').textContent=DB.getTotal();
+  },
+  showCustomEmotion(){
+    openModal(`
+      <h3>＋ 自定义情绪标签</h3>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <input type="text" id="ce-name" placeholder="情绪名称（如：内耗）" maxlength="6">
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="text" id="ce-icon" placeholder="表情" maxlength="2" style="width:70px;text-align:center">
+          <span class="muted" style="font-size:12px">如 😮‍💨 🌧️ ☁️</span>
+        </div>
+        <input type="color" id="ce-color" value="#a29bfe" style="height:42px;border-radius:10px;background:transparent;border:1px solid var(--border)">
+        <div style="display:flex;gap:10px;justify-content:flex-end">
+          <button class="btn btn-secondary" onclick="closeModal()">取消</button>
+          <button class="btn btn-primary" onclick="App.saveCustomEmotion()">保存</button>
+        </div>
+      </div>`);
+  },
+  saveCustomEmotion(){
+    const name=document.getElementById('ce-name').value.trim();
+    const icon=document.getElementById('ce-icon').value.trim()||'✨';
+    const color=document.getElementById('ce-color').value;
+    if(!name){ showToast('请填写情绪名称','#FF6B6B'); return; }
+    const list=Config.get('customEmotions');
+    if(list.some(t=>t.name===name)||EMOTION_TAGS.some(t=>t.name===name)){
+      showToast('该标签已存在','#FF8E53'); return;
+    }
+    list.push({name,icon,color,cat:'calm'});
+    Config.set('customEmotions',list);
+    this.selectedEmotion=name;
+    this.buildEmotionTags();
+    closeModal();
+    showToast(`✨ 已添加「${name}」标签`);
+  },
+  onRelease(){
+    const now=Date.now();
+    // 连击
+    if(now-this.lastReleaseAt<1500){ this.comboCount++; } else { this.comboCount=1; }
+    this.lastReleaseAt=now;
+    clearTimeout(this.comboTimer);
+    this.comboTimer=setTimeout(()=>{ this.comboCount=0; this.showCombo(0); },1600);
+    Config.set('maxCombo',Math.max(Config.get('maxCombo'),this.comboCount));
+    this.showCombo(this.comboCount);
+
+    DB.addEvent(this.selectedEmotion);
+    SoundEngine.play();
+    vibrate(80);
+    const bonus=this.comboCount>=3;
+    this.addXP(2+(bonus?1:0));
+    this.addEnergy(1+(bonus?1:0));
+    this.questProgress('release');
+    Config.set('petXP',Config.get('petXP')+1);
+
+    const mc=document.getElementById('main-content');
+    mc.classList.add('shake'); setTimeout(()=>mc.classList.remove('shake'),300);
+    const btn=document.getElementById('release-btn');
+    const rect=btn.getBoundingClientRect();
+    const cx=rect.left+rect.width/2, cy=rect.top+rect.height/2;
+    const tagInfo=[...EMOTION_TAGS,...Config.get('customEmotions')].find(t=>t.name===this.selectedEmotion);
+    const color=tagInfo?.color||'#FFD700';
+    Particles.burst(cx,cy,18,color);
+    showFloatingText(`${tagInfo?.icon||'✨'} ${bonus?'连击x'+this.comboCount+' ':''}+${1+(bonus?1:0)}⚡`,
+      cx-70+Math.random()*40,cy-46,color);
+    if(bonus&&this.comboCount%5===0) showToast(`🔗 ${this.comboCount} ${T('combo_bonus')}！额外能量`,'#ffb04d');
+    // 治愈插画反馈（每次释放给一个温和的 emoji 浮现）
+    if(Math.random()<.5){
+      const heals=['🌸','🌈','🍀','⭐','🕊️','🌙','💫','🎐'];
+      const h=document.createElement('div');
+      h.className='heal-pop';
+      h.textContent=heals[Math.floor(Math.random()*heals.length)];
+      h.style.left=(cx-20+Math.random()*40)+'px';
+      h.style.top=(cy-110)+'px';
+      document.body.appendChild(h);
+      setTimeout(()=>h.remove(),1700);
+    }
+    document.getElementById('release-count').textContent=DB.getTotal();
+    if(DB.getTotal()%5===0) this.refreshQuote();
+    this.updateTopbar();
+    this.checkAchievements();
+  },
+  refreshQuote(){
+    document.getElementById('zen-quote').textContent='「'+ZEN_QUOTES[Math.floor(Math.random()*ZEN_QUOTES.length)]+'」';
+  },
+
+  /* ---------- 连打挑战 ---------- */
+  onClickerClick(){
+    if(!this.clickerPlaying){ this.startClicker(); return; }
+    this.clickerCount++;
+    document.getElementById('clicker-count').textContent=this.clickerCount;
+    SoundEngine.play('pop'); vibrate(12);
+    const btn=document.getElementById('clicker-btn');
+    const r=btn.getBoundingClientRect();
+    Particles.burst(r.left+r.width/2+(Math.random()-.5)*60,r.top+r.height/2+(Math.random()-.5)*60,4,SKINS[Config.get('skin')]?.accent);
+  },
+  startClicker(){
+    this.clickerPlaying=true; this.clickerCount=0; this.clickerTimeLeft=10;
+    document.getElementById('clicker-count').textContent='0';
+    document.getElementById('clicker-time').textContent='10';
+    document.getElementById('clicker-rating').textContent='🔥 疯狂点击中…';
+    this.clickerTimer=setInterval(()=>{
+      this.clickerTimeLeft--;
+      document.getElementById('clicker-time').textContent=this.clickerTimeLeft;
+      if(this.clickerTimeLeft<=0) this.finishClicker();
+    },1000);
+  },
+  finishClicker(){
+    clearInterval(this.clickerTimer);
+    this.clickerPlaying=false;
+    const cps=+(this.clickerCount/10).toFixed(1);
+    let rating;
+    if(cps>=9) rating='⚡ 手速之神！';
+    else if(cps>=7) rating='🔥 闪电侠客！';
+    else if(cps>=5) rating='🥁 节奏大师！';
+    else if(cps>=3) rating='🚶 稳步前行！';
+    else rating='🧘 佛系点击，禅意满满';
+    let isNew=false;
+    if(cps>Config.get('bestCPS')){ Config.set('bestCPS',cps); document.getElementById('clicker-best').textContent=cps.toFixed(1); isNew=true; }
+    document.getElementById('clicker-rating').textContent=`${rating} ${cps} CPS`+(isNew?' 🎉 新纪录！':'');
+    this.addXP(5); this.addEnergy(3);
+    SoundEngine.play('bell'); vibrate(180);
+    const btn=document.getElementById('clicker-btn');
+    const r=btn.getBoundingClientRect();
+    Particles.burst(r.left+r.width/2,r.top+r.height/2,30,'#FFD700');
+    this.checkAchievements();
+    if(this.currentPage==='social') this.renderSocial();
+  },
+  /* ---------- 情绪日志 ---------- */
+  initJournal(){
+    const scale=document.getElementById('mood-scale');
+    MOOD_SCALE.forEach(m=>{
+      const b=document.createElement('button');
+      b.className='mood-opt'; b.dataset.v=m.v;
+      b.innerHTML=m.icon;
+      b.title=m.name;
+      b.onclick=()=>{
+        this.selectedMood=m.v;
+        scale.querySelectorAll('.mood-opt').forEach(x=>x.classList.remove('selected'));
+        b.classList.add('selected');
+        vibrate(15);
+      };
+      scale.appendChild(b);
+    });
+  },
+  classifyMood(text){
+    // 自然语言情绪归类：从最负面到最正面匹配关键词
+    const t=text.toLowerCase();
+    for(const v of [1,2,3,4,5]){
+      if(MOOD_WORDS[v].some(w=>t.includes(w))) return v;
+    }
+    return 0; // 未识别
+  },
+  onJournalPhoto(input){
+    const f=input.files[0]; if(!f) return;
+    if(f.size>2*1024*1024){ showToast('照片超过 2MB，请换一张小一点的','#FF8E53'); input.value=''; return; }
+    const reader=new FileReader();
+    reader.onload=e=>{
+      this.journalPhotoData=e.target.result;
+      const img=document.getElementById('jr-photo-preview');
+      img.src=this.journalPhotoData; img.style.display='block';
+      document.getElementById('jr-photo-name').textContent=f.name;
+    };
+    reader.readAsDataURL(f);
+  },
+  saveJournal(){
+    const note=document.getElementById('jr-note').value.trim();
+    let mood=this.selectedMood;
+    let classified=false;
+    if(!mood && note){
+      mood=this.classifyMood(note);
+      classified=mood>0;
+    }
+    if(!mood){ showToast('请先选择心情，或写一句话让 AI 归类','#FF8E53'); return; }
+    DB.addJournal({ts:Date.now(),mood,note,photo:this.journalPhotoData});
+    document.getElementById('jr-note').value='';
+    document.getElementById('jr-photo').value='';
+    document.getElementById('jr-photo-name').textContent='';
+    document.getElementById('jr-photo-preview').style.display='none';
+    this.journalPhotoData=null;
+    this.selectedMood=0;
+    document.querySelectorAll('.mood-opt').forEach(x=>x.classList.remove('selected'));
+    this.addXP(3); this.addEnergy(2);
+    this.questProgress('journal');
+    SoundEngine.play('chime');
+    showToast(classified?`🤖 ${T('ai_classified')}：${MOOD_SCALE[mood-1].icon} ${MOOD_SCALE[mood-1].name}`:T('journal_saved'),'#2ed8a3');
+    this.renderCalendar(); this.renderJournalList(); this.renderMoodTrend();
+    this.checkAchievements();
+  },
+  deleteJournal(id){
+    DB.delJournal(id);
+    this.renderCalendar(); this.renderJournalList(); this.renderMoodTrend();
+    if(this.currentPage==='dashboard') this.refreshDashboard();
+  },
+  renderCalendar(){
+    const cal=document.getElementById('calendar');
+    if(!cal) return;
+    const y=this.calYear,m=this.calMonth;
+    document.getElementById('cal-title').textContent=`${y}年${m+1}月`;
+    const first=new Date(y,m,1).getDay();
+    const days=new Date(y,m+1,0).getDate();
+    const today=new Date(); today.setHours(0,0,0,0);
+    // 当月日志映射：日 -> 平均心情
+    const dayMap={};
+    DB.journal.forEach(j=>{
+      const d=new Date(j.ts);
+      if(d.getFullYear()===y&&d.getMonth()===m){
+        const dd=d.getDate();
+        dayMap[dd]=dayMap[dd]||[];
+        dayMap[dd].push(j.mood);
+      }
+    });
+    let html=['日','一','二','三','四','五','六'].map(w=>`<div class="cal-hd">${w}</div>`).join('');
+    for(let i=0;i<first;i++) html+='<div class="cal-cell" style="opacity:.25"></div>';
+    for(let d=1;d<=days;d++){
+      const cellTs=new Date(y,m,d).getTime();
+      const isToday=cellTs===today.getTime();
+      const moods=dayMap[d];
+      let inner=d,cls='cal-cell';
+      if(moods){
+        const avg=moods.reduce((s,v)=>s+v,0)/moods.length;
+        const mobj=MOOD_SCALE[Math.round(avg)-1];
+        inner=`<span class="cal-mood">${mobj.icon}</span><span style="font-size:9px;margin-top:1px">${d}</span>`;
+        cls+=' has';
+        // 情绪色背景
+        const bg=mobj.color;
+        html+=`<div class="${cls}${isToday?' today':''}" style="background:${bg}33;border-color:${bg}88" title="${d}日 心情 ${mobj.name}">${inner}</div>`;
+        continue;
+      }
+      html+=`<div class="${cls}${isToday?' today':''}">${inner}</div>`;
+    }
+    cal.innerHTML=html;
+  },
+  calMove(dir){
+    this.calMonth+=dir;
+    if(this.calMonth<0){ this.calMonth=11; this.calYear--; }
+    if(this.calMonth>11){ this.calMonth=0; this.calYear++; }
+    this.renderCalendar();
+  },
+  renderJournalList(){
+    const list=document.getElementById('journal-list');
+    if(!list) return;
+    const items=[...DB.journal].sort((a,b)=>b.ts-a.ts).slice(0,12);
+    if(!items.length){ list.innerHTML=`<div class="empty-tip">还没有记录，写下第一条心情吧 ✍️</div>`; return; }
+    list.innerHTML='';
+    items.forEach(j=>{
+      const m=MOOD_SCALE[j.mood-1];
+      const d=new Date(j.ts);
+      const item=document.createElement('div');
+      item.className='jr-item';
+      item.innerHTML=`
+        <div class="jr-mood">${m.icon}</div>
+        <div class="jr-body">
+          <div class="jr-note">${j.note?j.note.replace(/</g,'&lt;'):'<span class="muted">（无文字）</span>'}</div>
+          <div class="jr-meta">${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')} · ${m.name}</div>
+        </div>
+        <button class="btn btn-secondary btn-sm">🗑️</button>`;
+      if(j.photo){
+        const img=document.createElement('img');
+        img.className='jr-photo'; img.alt='日志照片';
+        img.src=j.photo;
+        item.querySelector('.jr-body').insertBefore(img,item.querySelector('.jr-meta'));
+      }
+      item.querySelector('button').onclick=()=>this.deleteJournal(j.id);
+      list.appendChild(item);
+    });
+  },
+  renderMoodTrend(){
+    const data=DB.journalDailyAvg(14);
+    const box=document.getElementById('mood-trend-chart');
+    if(box) box.innerHTML=MiniChart.moodLine(data);
+    // 总结文案
+    const recent=DB.journal.slice(-14);
+    const sum=document.getElementById('journal-summary');
+    if(!sum) return;
+    if(recent.length<3){ sum.textContent='记录更多心情后，这里会给出你的情绪小结。'; return; }
+    const avg=recent.reduce((s,j)=>s+j.mood,0)/recent.length;
+    const m=MOOD_SCALE[Math.round(avg)-1];
+    const lows=recent.filter(j=>j.mood<=2).length;
+    let text=`近 14 条记录平均心情 ${avg.toFixed(1)}/5（${m.icon} ${m.name}）。`;
+    if(avg>=4) text+='整体状态积极向上，继续保持让你舒服的节奏。';
+    else if(avg>=3) text+='情绪总体平稳，偶尔的低落是正常的，给自己多一点耐心。';
+    else text+='这段时间辛苦了。低谷不会永远停留，试试冥想和呼吸，或者找人聊聊。';
+    if(lows>=4) text+=' 低落记录较多，建议今晚安排一次助眠冥想。';
+    sum.textContent=text;
+  },
+
+  /* ---------- 呼吸练习 ---------- */
+  initBreath(){
+    document.getElementById('breath-pattern').value=Config.get('breathPattern');
+    document.getElementById('breath-cycles').value=Config.get('breathCycles');
+    document.getElementById('breath-cycles-label').textContent=Config.get('breathCycles')+' 次';
+    document.getElementById('breath-voice').checked=Config.get('breathVoice');
+    const sel=document.getElementById('breath-ambient');
+    sel.innerHTML=AMBIENT_DEFS.map(a=>`<option value="${a.id}">${a.icon} ${a.name}</option>`).join('');
+    sel.value=Config.get('breathAmbient');
+  },
+  toggleBreath(){ this.breathRunning?this.pauseBreath():this.startBreath(); },
+  startBreath(){
+    this.breathRunning=true;
+    document.getElementById('breath-start-btn').innerHTML='⏸ 暂停';
+    SoundEngine.play('chime'); vibrate(50);
+    Ambient.setAmbientFor(Config.get('breathAmbient'));
+    this.breathLastTick=performance.now();
+    this.breathTick();
+  },
+  pauseBreath(){
+    this.breathRunning=false;
+    document.getElementById('breath-start-btn').innerHTML='▶ '+T('start_breath');
+    document.getElementById('breath-text').textContent='⏸ 已暂停';
+    Voice.stop();
+    if(this.breathRAF) cancelAnimationFrame(this.breathRAF);
+  },
+  resetBreath(){
+    this.breathRunning=false;
+    this.breathPhaseIdx=0; this.breathPhaseElapsed=0; this.breathCyclesDone=0;
+    this.breathCurrentScale=.45; this.breathStartScale=.45;
+    document.getElementById('breath-start-btn').innerHTML='▶ '+T('start_breath');
+    document.getElementById('breath-text').textContent='准备开始';
+    document.getElementById('breath-circle').style.transform='scale(0.45)';
+    document.getElementById('breath-progress').textContent='';
+    Voice.stop();
+    if(this.breathRAF) cancelAnimationFrame(this.breathRAF);
+  },
+  breathTick(){
+    if(!this.breathRunning) return;
+    const now=performance.now();
+    const dt=(now-this.breathLastTick)/1000;
+    this.breathLastTick=now;
+    const pattern=BREATH_PATTERNS[Config.get('breathPattern')]||BREATH_PATTERNS['4-7-8'];
+    const phase=pattern[this.breathPhaseIdx];
+    this.breathPhaseElapsed+=dt;
+    const progress=Math.min(1,this.breathPhaseElapsed/phase.dur);
+    const eased=.5-.5*Math.cos(Math.PI*progress);
+    this.breathCurrentScale=this.breathStartScale+(phase.target-this.breathStartScale)*eased;
+    document.getElementById('breath-circle').style.transform=`scale(${this.breathCurrentScale})`;
+    document.getElementById('breath-text').textContent=phase.name;
+    const cycles=Config.get('breathCycles');
+    document.getElementById('breath-progress').textContent=`第 ${Math.min(this.breathCyclesDone+1,cycles)}/${cycles} 轮`;
+    if(this.breathPhaseElapsed>=phase.dur){
+      if(Config.get('breathVoice')) Voice.speak(phase.name==='屏息'?'屏住呼吸':phase.name==='吸气'?'吸气':'呼气',.9);
+      this.breathStartScale=phase.target;
+      this.breathPhaseElapsed=0;
+      this.breathPhaseIdx=(this.breathPhaseIdx+1)%pattern.length;
+      if(this.breathPhaseIdx===0){
+        this.breathCyclesDone++;
+        if(this.breathCyclesDone>=cycles){ this.finishBreath(); return; }
+      }
+    }
+    this.breathRAF=requestAnimationFrame(()=>this.breathTick());
+  },
+  finishBreath(){
+    this.breathRunning=false;
+    document.getElementById('breath-start-btn').innerHTML='▶ '+T('start_breath');
+    document.getElementById('breath-text').textContent='🌿 完成';
+    document.getElementById('breath-progress').textContent='愿你内心平静';
+    Config.set('breathSessions',Config.get('breathSessions')+1);
+    this.addXP(4); this.addEnergy(3);
+    this.questProgress('breath');
+    SoundEngine.play('bell'); vibrate(200);
+    Ambient.setAmbientFor('none');
+    if(Config.get('breathVoice')) Voice.speak('呼吸练习完成，愿你内心平静');
+    showToast('🌿 '+T('breath_done'),'#00b894');
+    this.checkAchievements();
+  },
+  onBreathPatternChange(){ Config.set('breathPattern',document.getElementById('breath-pattern').value); if(!this.breathRunning) this.resetBreath(); },
+  onBreathCyclesChange(){ const v=document.getElementById('breath-cycles').value; document.getElementById('breath-cycles-label').textContent=v+' 次'; Config.set('breathCycles',+v); },
+  onBreathVoiceToggle(){ Config.set('breathVoice',document.getElementById('breath-voice').checked); },
+  onBreathAmbientChange(){
+    const v=document.getElementById('breath-ambient').value;
+    Config.set('breathAmbient',v);
+    if(this.breathRunning) Ambient.setAmbientFor(v);
+  },
+
+  /* ---------- 智能冥想 ---------- */
+  initMeditate(){
+    const grid=document.getElementById('med-scenes');
+    Object.entries(MED_SCENES).forEach(([id,s])=>{
+      const el=document.createElement('button');
+      el.className='scene-item'+(Config.get('medScene')===id?' active':'');
+      el.dataset.scene=id;
+      el.innerHTML=`<div class="scene-icon">${s.icon}</div><div class="scene-name">${s.name}</div><div class="scene-desc">${s.desc}</div>`;
+      el.onclick=()=>{
+        Config.set('medScene',id);
+        grid.querySelectorAll('.scene-item').forEach(x=>x.classList.remove('active'));
+        el.classList.add('active');
+        SoundEngine.play('pop');
+        if(!this.medRunning) document.getElementById('med-caption').textContent='';
+      };
+      grid.appendChild(el);
+    });
+    const chips=document.getElementById('med-dur-chips');
+    MED_DURATIONS.forEach(d=>{
+      const b=document.createElement('button');
+      b.className='chip'+(Config.get('medDur')===d?' active':'');
+      b.textContent=d+' 分钟';
+      b.onclick=()=>{
+        Config.set('medDur',d);
+        chips.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
+        b.classList.add('active');
+      };
+      chips.appendChild(b);
+    });
+    const sel=document.getElementById('med-ambient');
+    sel.innerHTML=AMBIENT_DEFS.map(a=>`<option value="${a.id}">${a.icon} ${a.name}</option>`).join('');
+    sel.value='rain';
+    document.getElementById('med-voice').checked=Config.get('medVoice');
+  },
+  toggleMeditate(){
+    if(this.medRunning){ this.stopMeditate(true); return; }
+    this.startMeditate();
+  },
+  startMeditate(){
+    const dur=Config.get('medDur');
+    this.medTotal=dur*60; this.medRemaining=this.medTotal;
+    this.medRunning=true;
+    document.getElementById('med-stage').style.display='flex';
+    document.getElementById('med-start-btn').innerHTML='⏹ 结束冥想';
+    const scene=MED_SCENES[Config.get('medScene')];
+    document.getElementById('med-scene-label').textContent=scene.icon+' '+scene.name;
+    Ambient.setAmbientFor(document.getElementById('med-ambient').value);
+    SoundEngine.ensure();
+    this.medVoiceIdx=0;
+    this.speakNextScript(scene);
+    this.medTimer=setInterval(()=>this.medTick(),1000);
+    vibrate(40);
+  },
+  speakNextScript(scene){
+    if(!this.medRunning) return;
+    if(!Config.get('medVoice')){
+      document.getElementById('med-caption').textContent=scene.script[this.medVoiceIdx%scene.script.length];
+    }else{
+      const line=scene.script[this.medVoiceIdx%scene.script.length];
+      document.getElementById('med-caption').textContent=line;
+      Voice.speak(line,.82);
+    }
+    this.medVoiceIdx++;
+    // 每句约 12 秒
+    this.medVoiceTimer=setTimeout(()=>this.speakNextScript(scene),12000);
+  },
+  medTick(){
+    this.medRemaining--;
+    const m=Math.floor(this.medRemaining/60),s=this.medRemaining%60;
+    document.getElementById('med-time').textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    const circ=2*Math.PI*104;
+    document.getElementById('med-ring-circle').style.strokeDashoffset=circ*(1-this.medRemaining/this.medTotal);
+    if(this.medRemaining<=0) this.finishMeditate();
+  },
+  stopMeditate(abort){
+    clearInterval(this.medTimer); clearTimeout(this.medVoiceTimer);
+    this.medRunning=false; Voice.stop(); Ambient.setAmbientFor('none');
+    document.getElementById('med-start-btn').innerHTML='▶ '+T('start_meditate');
+    document.getElementById('med-caption').textContent='';
+    document.getElementById('med-stage').style.display='none';
+    document.getElementById('med-ring-circle').style.strokeDashoffset=2*Math.PI*104;
+    if(abort) showToast('冥想已结束','#888899');
+  },
+  finishMeditate(){
+    clearInterval(this.medTimer); clearTimeout(this.medVoiceTimer);
+    this.medRunning=false; Voice.stop(); Ambient.setAmbientFor('none');
+    document.getElementById('med-stage').style.display='none';
+    document.getElementById('med-start-btn').innerHTML='▶ '+T('start_meditate');
+    const minutes=Config.get('medDur');
+    const scene=Config.get('medScene');
+    DB.addMed({ts:Date.now(),minutes,scene});
+    this.addXP(6+Math.round(minutes/2)); this.addEnergy(4+Math.round(minutes/3));
+    SoundEngine.play('bell'); vibrate(250);
+    Particles.confetti();
+    showToast(`🧘 ${T('med_done')}（${minutes} 分钟）`,'#00b894');
+    this.openMedAssess();
+    this.checkAchievements();
+  },
+  openMedAssess(){
+    const before=DB.journalToday().slice(-1)[0]?.mood||null;
+    openModal(`
+      <h3>🧘 ${T('med_done')}</h3>
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px">冥想后感觉如何？对比一下冥想前后的心情吧。</p>
+      ${before?`<p style="font-size:12px;color:var(--text-muted);margin-bottom:8px">冥想前：${MOOD_SCALE[before-1].icon} ${MOOD_SCALE[before-1].name}</p>`:''}
+      <div class="mood-scale" id="med-assess-scale" style="justify-content:flex-start"></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+        <button class="btn btn-secondary" onclick="closeModal()">稍后再说</button>
+        <button class="btn btn-primary" onclick="App.saveMedAssess()">保存评估</button>
+      </div>`);
+    const scale=document.getElementById('med-assess-scale');
+    this.medAssessMood=0;
+    MOOD_SCALE.forEach(m=>{
+      const b=document.createElement('button');
+      b.className='mood-opt'; b.innerHTML=m.icon; b.title=m.name;
+      b.onclick=()=>{
+        this.medAssessMood=m.v;
+        scale.querySelectorAll('.mood-opt').forEach(x=>x.classList.remove('selected'));
+        b.classList.add('selected');
+      };
+      scale.appendChild(b);
+    });
+  },
+  saveMedAssess(){
+    if(!this.medAssessMood){ showToast('请先选择冥想后的心情','#FF8E53'); return; }
+    DB.addJournal({ts:Date.now(),mood:this.medAssessMood,note:'🧘 冥想后情绪评估'});
+    closeModal();
+    showToast('💗 评估已记录','#2ed8a3');
+    this.checkAchievements();
+  },
+  medVoiceToggle(){ Config.set('medVoice',document.getElementById('med-voice').checked); },
+  /* ---------- 音频疗愈 ---------- */
+  initSound(){
+    const grid=document.getElementById('mixer-grid');
+    AMBIENT_DEFS.filter(a=>a.id!=='none').forEach(a=>{
+      const el=document.createElement('div');
+      el.className='mixer-item'; el.dataset.amb=a.id;
+      el.innerHTML=`
+        <div class="mixer-icon">${a.icon}</div>
+        <div class="mixer-name">${a.name}</div>
+        <input type="range" min="0" max="100" value="40" data-amb-vol="${a.id}"
+          oninput="App.onMixerVol('${a.id}',this.value)" onclick="event.stopPropagation()">
+        <div style="margin-top:8px"><button class="btn btn-sm btn-secondary" data-amb-btn="${a.id}" onclick="App.toggleMixer('${a.id}')">开启</button></div>`;
+      grid.appendChild(el);
+    });
+    // 双耳节拍
+    const bc=document.getElementById('binaural-chips');
+    BINAURAL_PRESETS.forEach((p,i)=>{
+      const b=document.createElement('button');
+      b.className='chip'+(i===2?' active':'');
+      b.innerHTML=`${p.name}<div style="font-size:9px;font-weight:400;opacity:.7">${p.desc}</div>`;
+      if(i===2) Ambient.binBeat=p.beat;
+      b.onclick=()=>{
+        bc.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
+        b.classList.add('active');
+        Ambient.binBeat=p.beat;
+        if(Ambient.binOn){ Ambient.startBin(); }
+        showToast(`🧠 ${p.name} · ${p.beat} Hz`);
+      };
+      bc.appendChild(b);
+    });
+    // 定时关闭
+    const tc=document.getElementById('timer-chips');
+    [0,15,30,45,60].forEach(min=>{
+      const b=document.createElement('button');
+      b.className='chip'; b.dataset.timer=min;
+      b.textContent=min===0?'关闭定时':min+' 分钟';
+      b.onclick=()=>{
+        Ambient.setTimer(min);
+        tc.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
+        if(min) b.classList.add('active');
+        this.updateTimerStatus();
+      };
+      tc.appendChild(b);
+    });
+    this.vizLoop();
+  },
+  toggleMixer(id){
+    if(this.soundMixerState[id]){
+      Ambient.stopChannel(id);
+      delete this.soundMixerState[id];
+    }else{
+      const volEl=document.querySelector(`[data-amb-vol="${id}"]`);
+      Ambient.startChannel(id,(volEl?volEl.value:40)/100);
+      this.soundMixerState[id]=true;
+    }
+    this.renderMixer();
+  },
+  onMixerVol(id,v){ if(this.soundMixerState[id]) Ambient.setVol(id,v/100); },
+  renderMixer(){
+    document.querySelectorAll('.mixer-item').forEach(el=>{
+      const id=el.dataset.amb;
+      const on=!!this.soundMixerState[id];
+      el.classList.toggle('on',on);
+      el.querySelector('[data-amb-btn]').textContent=on?'停止':'开启';
+    });
+  },
+  onBinBase(){
+    const v=+document.getElementById('bin-base').value;
+    document.getElementById('bin-base-label').textContent=v+' Hz';
+    Ambient.binBase=v;
+    if(Ambient.binOn) Ambient.startBin();
+  },
+  onBinToggle(){
+    Ambient.binOn=document.getElementById('bin-on').checked;
+    if(Ambient.binOn){ Ambient.startBin(); showToast('🎧 请佩戴耳机体验双耳节拍'); }
+    else Ambient.stopBin();
+  },
+  updateTimerStatus(){
+    const el=document.getElementById('timer-status');
+    if(!el) return;
+    if(!Ambient.timerEnd){ el.textContent=''; return; }
+    const left=Math.max(0,Ambient.timerEnd-Date.now());
+    const m=Math.floor(left/60000),s=Math.floor(left%60000/1000);
+    el.textContent=`⏳ ${m}分${String(s).padStart(2,'0')}秒后自动停止`;
+  },
+  vizLoop(){
+    const cv=document.getElementById('viz-canvas');
+    if(cv){
+      const c=cv.getContext('2d');
+      const w=cv.width,h=cv.height;
+      const draw=()=>{
+        requestAnimationFrame(draw);
+        if(document.getElementById('page-sound')?.classList.contains('active')!==true && this.currentPage!=='sound') return;
+        c.clearRect(0,0,w,h);
+        const an=Ambient.analyser;
+        const accent=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#5b8cff';
+        if(an){
+          const data=new Uint8Array(an.frequencyBinCount);
+          an.getByteFrequencyData(data);
+          const bw=w/data.length;
+          for(let i=0;i<data.length;i++){
+            const v=data[i]/255*(h-8);
+            c.fillStyle=accent;
+            c.globalAlpha=.35+v/h*.6;
+            c.fillRect(i*bw+1,h-v,bw-2,v);
+          }
+          c.globalAlpha=1;
+        }else{
+          // 无音频时的占位波纹
+          c.strokeStyle=accent; c.globalAlpha=.3;
+          const t=Date.now()/600;
+          c.beginPath();
+          for(let x=0;x<w;x+=4){
+            const y=h/2+Math.sin(x/30+t)*8*Math.sin(t/3);
+            x?c.lineTo(x,y):c.moveTo(x,y);
+          }
+          c.stroke(); c.globalAlpha=1;
+        }
+      };
+      draw();
+    }
+  },
+
+  /* ---------- 番茄钟 ---------- */
+  initPomo(){
+    document.getElementById('pomo-work').value=Config.get('pomoWork');
+    document.getElementById('pomo-break').value=Config.get('pomoBreak');
+    document.getElementById('pomo-goal').value=Config.get('pomoGoal');
+    document.getElementById('pomo-work-label').textContent=Config.get('pomoWork')+'分钟';
+    document.getElementById('pomo-break-label').textContent=Config.get('pomoBreak')+'分钟';
+    document.getElementById('pomo-goal-label').textContent=Config.get('pomoGoal')+' 个';
+    this.pomoRemaining=Config.get('pomoWork')*60;
+    this.pomoTotalSeconds=Config.get('pomoWork')*60;
+    this.updatePomoDisplay();
+  },
+  togglePomo(){ this.pomoRunning?this.pausePomo():this.startPomo(); },
+  startPomo(){
+    this.pomoRunning=true;
+    document.getElementById('pomo-start-btn').innerHTML='⏸ 暂停';
+    document.getElementById('pomo-status').textContent=this.pomoIsBreak?'☕ 休息中…':'🍅 专注中…';
+    this.pomoTimer=setInterval(()=>this.pomoTick(),1000);
+  },
+  pausePomo(){
+    this.pomoRunning=false;
+    document.getElementById('pomo-start-btn').innerHTML='▶ 继续';
+    document.getElementById('pomo-status').textContent='⏸ 已暂停';
+    clearInterval(this.pomoTimer);
+  },
+  resetPomo(){
+    this.pomoRunning=false; this.pomoIsBreak=false;
+    this.pomoRemaining=Config.get('pomoWork')*60; this.pomoTotalSeconds=Config.get('pomoWork')*60;
+    document.getElementById('pomo-start-btn').innerHTML='▶ '+T('start');
+    document.getElementById('pomo-status').textContent='准备开始';
+    clearInterval(this.pomoTimer);
+    this.updatePomoDisplay();
+  },
+  pomoTick(){
+    if(this.pomoRemaining<=0){ this.pomoComplete(); return; }
+    this.pomoRemaining--;
+    this.updatePomoDisplay();
+  },
+  updatePomoDisplay(){
+    const m=Math.floor(this.pomoRemaining/60),s=this.pomoRemaining%60;
+    document.getElementById('pomo-time').textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    const progress=1-(this.pomoRemaining/Math.max(1,this.pomoTotalSeconds));
+    const circ=2*Math.PI*102;
+    document.getElementById('pomo-ring-circle').style.strokeDashoffset=circ*(1-progress);
+    const todayN=DB.pomosToday().length,goal=Config.get('pomoGoal');
+    document.getElementById('pomo-completed').innerHTML=
+      `今日完成 <b style="color:var(--accent)">${todayN}</b>/${goal} 个番茄 · 总历史 ${DB.pomos.length}`;
+  },
+  pomoComplete(){
+    clearInterval(this.pomoTimer);
+    this.pomoRunning=false;
+    SoundEngine.play('bell'); vibrate(300);
+    if(!this.pomoIsBreak){
+      DB.addPomo({ts:Date.now(),minutes:Config.get('pomoWork')});
+      this.addXP(8); this.addEnergy(5);
+      this.questProgress('pomo');
+      this.pomoIsBreak=true;
+      this.pomoRemaining=Config.get('pomoBreak')*60; this.pomoTotalSeconds=Config.get('pomoBreak')*60;
+      document.getElementById('pomo-status').textContent='☕ 休息时间！';
+      document.getElementById('pomo-start-btn').innerHTML='▶ 开始休息';
+      const mc=document.getElementById('main-content');
+      mc.classList.add('shake'); setTimeout(()=>mc.classList.remove('shake'),300);
+      this.sendNotify('🍅 番茄完成！','休息一下，做做呼吸练习或释放情绪吧');
+      // 联动建议弹窗
+      openModal(`
+        <h3>🍅 ${T('pomo_done')}</h3>
+        <p style="font-size:13px;color:var(--text-secondary);line-height:1.8">专注时段结束！休息的时候，来点放松吧：</p>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">
+          <button class="btn btn-primary" onclick="closeModal();App.showPage('breath');App.toggleBreath()">🌬️ 来一次呼吸练习</button>
+          <button class="btn btn-secondary" onclick="closeModal();App.showPage('release');App.onRelease()">💥 释放一下情绪</button>
+          <button class="btn btn-secondary" onclick="closeModal()">⏭️ 直接休息</button>
+        </div>`);
+      this.checkAchievements();
+    }else{
+      this.pomoIsBreak=false;
+      this.pomoRemaining=Config.get('pomoWork')*60; this.pomoTotalSeconds=Config.get('pomoWork')*60;
+      document.getElementById('pomo-status').textContent='🍅 准备下一轮';
+      document.getElementById('pomo-start-btn').innerHTML='▶ '+T('start');
+      showToast('☕ 休息结束，继续加油！','#a29bfe');
+    }
+    this.updatePomoDisplay();
+    this.renderPomoAnalytics();
+    if(this.currentPage==='dashboard') this.refreshDashboard();
+  },
+  onPomoWorkChange(){
+    const v=+document.getElementById('pomo-work').value;
+    document.getElementById('pomo-work-label').textContent=v+'分钟';
+    Config.set('pomoWork',v);
+    if(!this.pomoRunning&&!this.pomoIsBreak){
+      this.pomoRemaining=v*60; this.pomoTotalSeconds=v*60;
+      this.updatePomoDisplay();
+    }
+  },
+  onPomoBreakChange(){
+    const v=+document.getElementById('pomo-break').value;
+    document.getElementById('pomo-break-label').textContent=v+'分钟';
+    Config.set('pomoBreak',v);
+  },
+  onPomoGoalChange(){
+    const v=+document.getElementById('pomo-goal').value;
+    document.getElementById('pomo-goal-label').textContent=v+' 个';
+    Config.set('pomoGoal',v);
+    this.updatePomoDisplay();
+  },
+  renderPomoAnalytics(){
+    const chart=document.getElementById('pomo-week-chart');
+    if(!chart) return;
+    const daily=DB.pomoDaily(7);
+    chart.innerHTML=MiniChart.bars(daily.map(d=>d.count),daily.map(d=>d.label),'#ff8e6b',110);
+    const week=daily.reduce((s,d)=>s+d.count,0);
+    const goal=Config.get('pomoGoal')*7;
+    const sum=document.getElementById('pomo-focus-summary');
+    sum.textContent=week===0?'本周还没有番茄记录。开始第一个番茄，让专注可见。':
+      `本周完成 ${week} 个番茄（目标 ${goal} 个，达成 ${Math.min(100,Math.round(week/goal*100))}%）。`+
+      (week>=goal?'已达成周目标，专注力在线！':'按当前节奏继续，很快就能达成目标。');
+    const hist=document.getElementById('pomo-history');
+    document.getElementById('pomo-total-hist').textContent=`共 ${DB.pomos.length} 条`;
+    if(!DB.pomos.length){ hist.innerHTML=`<div class="empty-tip">暂无记录</div>`; return; }
+    hist.innerHTML=[...DB.pomos].sort((a,b)=>b.ts-a.ts).slice(0,8).map(p=>{
+      const d=new Date(p.ts);
+      return `<div class="pomo-hist-item">
+        <span>🍅 ${p.minutes} 分钟专注</span>
+        <span class="muted">${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}</span>
+      </div>`;
+    }).join('');
+  },
+
+  /* ---------- 统计 ---------- */
+  refreshStats(){
+    const total=DB.getTotal(),streak=DB.getStreak(),today=DB.getToday();
+    const pomos=DB.pomos.length,medMin=DB.medTotalMinutes();
+    document.getElementById('stats-cards').innerHTML=`
+      <div class="stat-card"><div class="stat-value">${total}</div><div class="stat-label">${T('total')}</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:#FFD700">${streak}</div><div class="stat-label">${T('streak_d')}</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:#00b894">${today}</div><div class="stat-label">${T('today')}</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:#ff8e6b">${pomos}</div><div class="stat-label">${T('today_focus').replace('今日','累计')}</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:#a29bfe">${medMin}</div><div class="stat-label">冥想分钟</div></div>`;
+    const accent=SKINS[Config.get('skin')]?.accent||'#5b8cff';
+    const daily=DB.getDaily(7);
+    document.getElementById('chart-daily').innerHTML=MiniChart.line(daily.map(d=>d.count),daily.map(d=>d.label),accent);
+    const dist=DB.getEmotionDist(7);
+    document.getElementById('chart-emo').innerHTML=Object.keys(dist).length
+      ?MiniChart.doughnut(dist)
+      :`<div class="empty-tip">暂无情绪数据</div>`;
+    const hourly=DB.getHourly(7);
+    document.getElementById('chart-hour').innerHTML=MiniChart.bars(hourly,Array.from({length:24},(_,i)=>i%4===0?i+'时':''),accent,100);
+    // 周对比
+    const thisWeek=DB.weekTotal(0),lastWeek=DB.weekTotal(1);
+    const cmp=document.getElementById('week-compare');
+    if(lastWeek>0){
+      const pct=Math.round((thisWeek-lastWeek)/lastWeek*100);
+      cmp.textContent=`较上周 ${pct>=0?'↑'+pct:'↓'+Math.abs(pct)}%`;
+      cmp.style.color=pct>=0?'#2ed8a3':'#ff8e6b';
+    }else cmp.textContent='';
+    // 总结文案
+    const peak=hourly.indexOf(Math.max(...hourly));
+    const emoTop=Object.entries(dist).sort((a,b)=>b[1]-a[1])[0];
+    let sum=`过去 7 天你共释放 ${thisWeek} 次`;
+    if(peak>0&&Math.max(...hourly)>0) sum+=`，最常出现在 ${peak}:00 前后`;
+    if(emoTop) sum+=`，主要情绪是「${emoTop[0]}」（${emoTop[1]} 次）`;
+    sum+='。情绪被看见，就是疗愈的开始。';
+    document.getElementById('stats-summary').textContent=sum;
+  },
+  exportCSV(){
+    let csv='\uFEFF序号,时间,情绪,类型,数值,备注/来源,来源,时长(分钟)\n';
+    DB.events.forEach((e,i)=>{ csv+=`${i+1},${new Date(e.ts).toLocaleString('zh-CN')},${e.emotion},释放,,,,\n`; });
+    DB.journal.forEach(j=>{ csv+=`,${new Date(j.ts).toLocaleString('zh-CN')},,日志,${j.mood},${(j.note||'').replace(/,/g,'，').replace(/\n/g,' ')},,\n`; });
+    DB.meds.forEach(m=>{ csv+=`,${new Date(m.ts).toLocaleString('zh-CN')},,冥想,,,,${m.minutes}\n`; });
+    DB.pomos.forEach(p=>{ csv+=`,${new Date(p.ts).toLocaleString('zh-CN')},,番茄,,,,${p.minutes}\n`; });
+    downloadBlob(new Blob([csv],{type:'text/csv;charset=utf-8'}),`zenclicker_export_${dateStamp()}.csv`);
+    showToast('📤 '+T('export_ok'),'#00b894');
+  },
+  exportJSON(){
+    const data={
+      version:1,exportedAt:new Date().toISOString(),
+      events:DB.events,journal:DB.journal,meds:DB.meds,pomos:DB.pomos,wall:DB.wall,
+      config:Config.data,
+    };
+    downloadBlob(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),`zenclicker_backup_${dateStamp()}.json`);
+    showToast('💾 '+T('export_ok'),'#00b894');
+  },
+  importJSON(input){
+    const f=input.files[0]; input.value='';
+    if(!f) return;
+    const reader=new FileReader();
+    reader.onload=e=>{
+      try{
+        const data=JSON.parse(e.target.result);
+        if(Array.isArray(data.events)) DB.events=data.events;
+        if(Array.isArray(data.journal)) DB.journal=data.journal;
+        if(Array.isArray(data.meds)) DB.meds=data.meds;
+        if(Array.isArray(data.pomos)) DB.pomos=data.pomos;
+        if(Array.isArray(data.wall)) DB.wall=data.wall;
+        if(data.config) Config.data={...Config.defaults,...data.config};
+        ['events','journal','meds','pomos'].forEach(s=>DB.persist(s));
+        DB.saveWall(); Config.save();
+        showToast('📥 '+T('import_ok'),'#00b894');
+        setTimeout(()=>location.reload(),600);
+      }catch(err){ showToast('导入失败：文件格式不正确','#FF6B6B'); }
+    };
+    reader.readAsText(f);
+  },
+  /* ---------- 成就系统 ---------- */
+  achvCtx(){
+    const total=DB.getTotal();
+    return {
+      total, streak:DB.getStreak(), journal:DB.journal.length,
+      breath:Config.get('breathSessions'), medSess:DB.meds.length, medMin:DB.medTotalMinutes(),
+      pomos:DB.pomos.length, checkins:Config.get('checkinDates').length,
+      bestCPS:Config.get('bestCPS'), maxCombo:Config.get('maxCombo'),
+      level:Config.get('level'), energyEarned:Config.get('energyEarned'),
+      wall:DB.wall.length,
+      petStage:(()=>{let s=0;PET_STAGES.forEach((st,i)=>{if(Config.get('petXP')>=st.xp)s=i;});return s;})(),
+    };
+  },
+  unlockedAchv(){
+    const unlocked=JSON.parse(localStorage.getItem('zcp_achv')||'[]');
+    return unlocked;
+  },
+  checkAchievements(){
+    const ctx=this.achvCtx();
+    const unlocked=this.unlockedAchv();
+    let newly=null;
+    ACHIEVEMENTS.forEach(a=>{
+      if(!unlocked.includes(a.id)&&a.check(ctx)){
+        unlocked.push(a.id);
+        newly=a;
+      }
+    });
+    if(newly){
+      localStorage.setItem('zcp_achv',JSON.stringify(unlocked));
+      this.celebrate(newly);
+      this.addEnergy(10);
+    }
+    const badge=document.getElementById('achv-badge');
+    if(badge) badge.textContent=`🏅 ${unlocked.length}/${ACHIEVEMENTS.length}`;
+    if(this.currentPage==='achievements') this.renderAchievements();
+  },
+  celebrate(a){
+    document.getElementById('cb-icon').textContent=a.icon;
+    document.getElementById('cb-title').textContent=a.name;
+    document.getElementById('cb-desc').textContent=`${TIERS[a.tier].name}成就解锁 · ${a.desc} · 奖励 ⚡10`;
+    document.getElementById('celebrate').classList.add('open');
+    Particles.confetti();
+    SoundEngine.play('crystal');
+    vibrate(200);
+    setTimeout(()=>this.closeCelebrate(),3200);
+  },
+  closeCelebrate(){ document.getElementById('celebrate').classList.remove('open'); },
+  achvTierFilter:'all',
+  renderAchievements(){
+    const unlocked=this.unlockedAchv();
+    document.getElementById('achv-summary').textContent=
+      `已解锁 ${unlocked.length}/${ACHIEVEMENTS.length} 个成就 · 等级 Lv.${Config.get('level')} ${LEVELS[Config.get('level')-1]}`;
+    // 等级标签页
+    const tabs=document.getElementById('tier-tabs');
+    const tiers=[['all','全部'],...Object.entries(TIERS).map(([k,t])=>[k,t.name])];
+    tabs.innerHTML=tiers.map(([k,n])=>
+      `<button class="chip${this.achvTierFilter===k?' active':''}" onclick="App.achvTierFilter='${k}';App.renderAchievements()">${n}</button>`).join('');
+    const grid=document.getElementById('achv-list');
+    const list=ACHIEVEMENTS.filter(a=>this.achvTierFilter==='all'||a.tier===this.achvTierFilter);
+    grid.innerHTML=list.map(a=>{
+      const isU=unlocked.includes(a.id);
+      const tc=TIERS[a.tier].color;
+      return `<div class="achv-badge ${isU?'unlocked':'locked'}" style="--tier-color:${tc}">
+        <div class="ab-icon">${isU?a.icon:'🔒'}</div>
+        <div class="ab-name">${a.name}</div>
+        <div class="ab-desc">${a.desc}</div>
+        <span class="ab-tier">${TIERS[a.tier].name}</span>
+      </div>`;
+    }).join('');
+  },
+
+  /* ---------- 禅意社区 ---------- */
+  initSocial(){},
+  renderSocial(){
+    // 每日禅语（按日期固定）
+    const dayIdx=Math.floor(Date.now()/86400000);
+    document.getElementById('social-quote').textContent='「'+ZEN_QUOTES[dayIdx%ZEN_QUOTES.length]+'」';
+    // 挑战
+    const chips=document.getElementById('challenge-chips');
+    const active=Config.get('activeChallenge');
+    chips.innerHTML=[7,21,100].map(d=>
+      `<button class="chip${active===d?' active':''}" onclick="Config.set('activeChallenge',${d});App.renderSocial()">🎯 ${d} 天</button>`).join('');
+    const dates=Config.get('checkinDates');
+    // 连续打卡（从最近一次往前数）
+    let streakCk=0;
+    const set=new Set(dates);
+    let probe=new Date(); probe.setHours(0,0,0,0);
+    if(!set.has(probe.toDateString())) probe.setDate(probe.getDate()-1);
+    while(set.has(probe.toDateString())){ streakCk++; probe.setDate(probe.getDate()-1); }
+    const done=Math.min(streakCk,active);
+    const isToday=dates.includes(new Date().toDateString());
+    document.getElementById('challenge-status').innerHTML=
+      `当前挑战：<b>${active} 天打卡</b> · 已连续 <b style="color:var(--accent)">${streakCk}</b> 天<br>
+      <div class="progress-bar" style="margin-top:6px"><div class="fill" style="width:${done/active*100}%"></div></div>
+      <span class="muted" style="font-size:11px">进度 ${done}/${active}${done>=active?' · 🎉 挑战达成！':''}</span>`;
+    document.getElementById('checkin-btn').disabled=isToday;
+    document.getElementById('checkin-btn').innerHTML=isToday?'✅ 已打卡':'✅ '+T('checkin');
+    // 分享墙
+    const wall=document.getElementById('wall-list');
+    const all=[...DB.wall.map(w=>({...w,mine:true})),...WALL_SEEDS.map(s=>({...s,ts:Date.now()-s.ago*3600000}))].sort((a,b)=>b.ts-a.ts).slice(0,10);
+    wall.innerHTML=all.map(p=>{
+      const d=new Date(p.ts);
+      const ago=Math.max(1,Math.round((Date.now()-p.ts)/3600000));
+      return `<div class="wall-card">
+        <div class="wall-head">
+          <div class="wall-avatar">${p.avatar||'🌸'}</div>
+          <div>
+            <div class="wall-name">${p.name}${p.mine?' <span class="muted" style="font-size:10px">(你)</span>':''}</div>
+            <div class="wall-time">${ago<24?ago+' 小时前':Math.round(ago/24)+' 天前'}</div>
+          </div>
+        </div>
+        <div class="wall-text">${(p.text||'').replace(/</g,'&lt;')}</div>
+        <div class="wall-actions">
+          <button class="wall-act" onclick="App.likeWall(this)">🤍 ${p.likes||0}</button>
+          <span class="wall-act" style="cursor:default">🕊️ 匿名</span>
+        </div>
+      </div>`;
+    }).join('');
+    // 排行榜
+    const rank=document.getElementById('rank-list');
+    const myCPS=Config.get('bestCPS');
+    const rows=[...RANK_BOTS.map(b=>({...b,me:false})),{name:'你',cps:myCPS,me:true}]
+      .sort((a,b)=>b.cps-a.cps);
+    rank.innerHTML=rows.map((r,i)=>{
+      const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1;
+      return `<div class="rank-row${r.me?' me':''}">
+        <span class="rank-medal">${medal}</span>
+        <span style="flex:1">${r.name}${r.me?' <span class="muted" style="font-size:10px">(去连打挑战刷新成绩)</span>':''}</span>
+        <b style="color:var(--accent)">${r.cps.toFixed(1)}</b>
+        <span class="muted" style="font-size:11px">CPS</span>
+      </div>`;
+    }).join('');
+  },
+  doCheckin(){
+    const key=new Date().toDateString();
+    const dates=Config.get('checkinDates');
+    if(dates.includes(key)) return;
+    dates.push(key);
+    Config.set('checkinDates',dates);
+    this.addXP(4); this.addEnergy(3);
+    SoundEngine.play('chime');
+    showToast('✅ '+T('checkin_ok')+'！连续 '+this.checkinStreak()+' 天','#2ed8a3');
+    this.renderSocial();
+    this.checkAchievements();
+  },
+  checkinStreak(){
+    const set=new Set(Config.get('checkinDates'));
+    let n=0,probe=new Date(); probe.setHours(0,0,0,0);
+    if(!set.has(probe.toDateString())) probe.setDate(probe.getDate()-1);
+    while(set.has(probe.toDateString())){ n++; probe.setDate(probe.getDate()-1); }
+    return n;
+  },
+  postWall(){
+    const input=document.getElementById('wall-input');
+    const text=input.value.trim();
+    if(!text){ showToast('写点什么再发布吧','#FF8E53'); return; }
+    const names=['安静的旅人','月下听风','拾光者','温柔的刺猬','半山腰的人','云朵收藏家'];
+    DB.wall.push({
+      ts:Date.now(), text,
+      name:names[Math.floor(Math.random()*names.length)],
+      avatar:['🌸','🌿','🌙','⭐','🍃','🕊️'][Math.floor(Math.random()*6)],
+      likes:0,
+    });
+    DB.saveWall();
+    input.value='';
+    this.addXP(3); this.addEnergy(2);
+    showToast('🕊️ 已匿名发布');
+    this.renderSocial();
+    this.checkAchievements();
+  },
+  likeWall(btn){
+    btn.dataset.liked=btn.dataset.liked==='1'?'0':'1';
+    const liked=btn.dataset.liked==='1';
+    const n=parseInt(btn.textContent.replace(/\D/g,''))||0;
+    btn.innerHTML=(liked?'❤️ ':'🤍 ')+(liked?n+1:Math.max(0,n-1));
+    if(liked) SoundEngine.play('pop');
+  },
+
+  /* ---------- 周报与 AI 洞察 ---------- */
+  generateReport(){
+    const total=DB.getTotal(),streak=DB.getStreak();
+    const hourly=DB.getHourly(7);
+    const peak=hourly.indexOf(Math.max(...hourly));
+    const dist=DB.getEmotionDist(7);
+    const daily=DB.getDaily(7);
+    const accent=SKINS[Config.get('skin')]?.accent||'#5b8cff';
+    const card=document.getElementById('report-card');
+    card.style.display='block';
+    document.getElementById('report-placeholder').style.display='none';
+    const emoHTML=Object.entries(dist).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([name,count])=>{
+      const tag=EMOTION_TAGS.find(t=>t.name===name);
+      return `<span class="tag" style="background:${tag?.color||'#888'}22;color:${tag?.color||'#888'};margin:2px">${tag?.icon||'❓'} ${name} ${count}</span>`;
+    }).join('');
+    const maxC=Math.max(...daily.map(d=>d.count),1);
+    const spark=daily.map((d,i)=>{
+      const x=(i/Math.max(1,daily.length-1))*100;
+      const y=100-(d.count/maxC)*80;
+      return `${x},${y}`;
+    }).join(' ');
+    card.innerHTML=`
+      <div style="height:4px;background:${accent};border-radius:2px;margin-bottom:16px"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div>
+          <div style="font-size:17px;font-weight:800">🧘 ZenClicker Weekly Report</div>
+          <div style="font-size:11px;color:var(--text-muted)">${new Date().toLocaleDateString('zh-CN')}</div>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted)">Lv.${Config.get('level')} ${LEVELS[Config.get('level')-1]}</div>
+      </div>
+      <div style="display:flex;gap:24px;margin-bottom:14px;flex-wrap:wrap">
+        <div><div style="font-size:26px;font-weight:900;color:${accent}">${total}</div><div style="font-size:11px;color:var(--text-secondary)">总释放</div></div>
+        <div><div style="font-size:26px;font-weight:900;color:#FFD700">${streak}</div><div style="font-size:11px;color:var(--text-secondary)">连续天数</div></div>
+        <div><div style="font-size:26px;font-weight:900;color:#FF6B6B">${String(peak).padStart(2,'0')}:00</div><div style="font-size:11px;color:var(--text-secondary)">释放高峰</div></div>
+        <div><div style="font-size:26px;font-weight:900;color:#2ed8a3">${DB.pomos.length}</div><div style="font-size:11px;color:var(--text-secondary)">累计番茄</div></div>
+      </div>
+      <div style="margin-bottom:12px">${emoHTML||'<span style="color:var(--text-muted);font-size:12px">暂无情绪记录</span>'}</div>
+      <svg viewBox="0 0 100 100" style="width:100%;height:80px" preserveAspectRatio="none">
+        <polyline points="${spark}" fill="none" stroke="${accent}" stroke-width="2" vector-effect="non-scaling-stroke"/>
+      </svg>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted)">
+        ${daily.map(d=>`<span>${d.label}</span>`).join('')}
+      </div>
+      <div style="font-size:10px;color:var(--text-muted);text-align:center;padding-top:12px;border-top:1px solid var(--border);margin-top:10px">
+        ZenClicker Pro · Your emotions matter 💜
+      </div>`;
+    document.getElementById('report-save-btn').disabled=false;
+    document.getElementById('report-copy-btn').disabled=false;
+    this.addXP(2);
+    showToast('✅ 周报生成成功！','#00b894');
+    SoundEngine.play('chime');
+  },
+  saveReport(){
+    try{
+      const card=document.getElementById('report-card');
+      const canvas=document.createElement('canvas');
+      // 简化导出：将卡片绘制为纯文本+色块图（无外部库依赖）
+      const w=720,h=520; canvas.width=w; canvas.height=h;
+      const c=canvas.getContext('2d');
+      const dark=document.documentElement.dataset.theme==='dark';
+      c.fillStyle=dark?'#0b0e1a':'#eef2fb'; c.fillRect(0,0,w,h);
+      const accent=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+      c.fillStyle=accent; c.fillRect(24,24,w-48,6);
+      c.fillStyle=dark?'#eceef8':'#20243a'; c.font='bold 26px "Microsoft YaHei",sans-serif';
+      c.fillText('🧘 ZenClicker Weekly Report',24,76);
+      c.fillStyle=dark?'#5d6480':'#9aa0b8'; c.font='13px sans-serif';
+      c.fillText(new Date().toLocaleDateString('zh-CN'),24,100);
+      c.font='bold 34px sans-serif';
+      c.fillStyle=accent; c.fillText(DB.getTotal()+'',24,160);
+      c.fillStyle='#FFD700'; c.fillText(DB.getStreak()+'',180,160);
+      c.fillStyle='#2ed8a3'; c.fillText(DB.pomos.length+'',320,160);
+      c.font='12px sans-serif'; c.fillStyle=dark?'#9aa0b8':'#5b627e';
+      c.fillText('总释放',24,182); c.fillText('连续天数',180,182); c.fillText('累计番茄',320,182);
+      const daily=DB.getDaily(7);
+      const maxC=Math.max(...daily.map(d=>d.count),1);
+      const x0=24,y0=460,cw=(w-48)/7;
+      daily.forEach((d,i)=>{
+        const bh=(d.count/maxC)*200;
+        c.fillStyle=accent; c.globalAlpha=.85;
+        c.fillRect(x0+i*cw+14,y0-bh,cw-28,bh);
+        c.globalAlpha=1;
+        c.fillStyle=dark?'#5d6480':'#9aa0b8'; c.font='11px sans-serif';
+        c.fillText(d.label,x0+i*cw+10,y0+16);
+      });
+      c.fillStyle=dark?'#5d6480':'#9aa0b8'; c.font='11px sans-serif';
+      c.fillText('ZenClicker Pro · Your emotions matter 💜',w/2-110,h-16);
+      const a=document.createElement('a');
+      a.href=canvas.toDataURL('image/png');
+      a.download='zenclicker_report.png';
+      a.click();
+      showToast('💾 '+T('save_ok'),'#00b894');
+    }catch(e){ showToast('❌ 保存失败','#FF6B6B'); }
+  },
+  async copyReport(){
+    try{
+      const card=document.getElementById('report-card');
+      const canvas=document.createElement('canvas');
+      const w=720,h=520; canvas.width=w; canvas.height=h;
+      const c=canvas.getContext('2d');
+      c.fillStyle='#0b0e1a'; c.fillRect(0,0,w,h);
+      c.fillStyle='#5b8cff'; c.font='bold 26px sans-serif';
+      c.fillText('🧘 ZenClicker Weekly Report',24,60);
+      c.font='bold 40px sans-serif';
+      c.fillText('总释放 '+DB.getTotal()+' · 连续 '+DB.getStreak()+' 天',24,140);
+      const blob=await new Promise(r=>canvas.toBlob(r,'image/png'));
+      await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);
+      showToast('📋 已复制到剪贴板','#00b894');
+    }catch(e){ showToast('❌ 复制失败，请改用保存图片','#FF6B6B'); }
+  },
+  renderAIInsight(){
+    const box=document.getElementById('ai-insight');
+    if(!box) return;
+    const lines=[];
+    const dist=DB.getEmotionDist(14);
+    let neg=0,pos=0,calm=0,sumN=0;
+    Object.entries(dist).forEach(([n,c])=>{
+      const t=EMOTION_TAGS.find(x=>x.name===n);
+      sumN+=c;
+      if(t?.cat==='negative') neg+=c; else if(t?.cat==='positive') pos+=c; else calm+=c;
+    });
+    if(sumN>0){
+      lines.push(`📊 <b>情绪报告</b>：近 14 天共释放 ${sumN} 次，负面情绪占 ${Math.round(neg/sumN*100)}%，积极情绪占 ${Math.round(pos/sumN*100)}%。`);
+      if(neg/sumN>.55) lines.push(`⚠️ <b>情绪预警</b>：负面情绪频率偏高。推荐：「放松」场景冥想 + 方块呼吸，连续 3 天观察变化。`);
+      else if(pos/sumN>.5) lines.push(`🌈 积极情绪占主导，状态很好，可以试试「能量」冥想让状态更进一步。`);
+    }
+    // 智能推荐
+    const hour=new Date().getHours();
+    if(hour>=22||hour<5) lines.push(`🌙 现在是深夜，推荐 4-7-8 呼吸法和助眠冥想，帮助入眠。`);
+    else if(hour>=9&&hour<12) lines.push(`🎯 上午适合专注：推荐「专注」冥想 + 一个 25 分钟番茄。`);
+    else if(hour>=14&&hour<18) lines.push(`🍃 下午易疲惫，推荐「能量」冥想 3 分钟快速充电。`);
+    else lines.push(`🌆 傍晚适合「放松」冥想，卸下一天的压力。`);
+    // 习惯建议
+    if(DB.getToday()===0&&DB.weekTotal(0)>0) lines.push(`💥 今天还没释放，别把情绪留到明天。`);
+    if(DB.journal.length>0&&DB.journalDailyAvg(7).filter(d=>d.v!=null).length===0) lines.push(`📔 最近 7 天没有记录心情，坚持记录能让情绪曲线更清晰。`);
+    if(DB.pomos.length>0){
+      const goal=Config.get('pomoGoal');
+      const todayN=DB.pomosToday().length;
+      if(todayN>=goal) lines.push(`🍅 番茄目标已达成，奖励自己一次呼吸练习吧。`);
+    }
+    box.innerHTML=lines.length?lines.map(l=>`<div style="margin-bottom:8px">${l}</div>`).join('')
+      :'开始使用后，这里会出现基于你记录的智能洞察。';
+  },
+
+  /* ---------- 设置 ---------- */
+  initSettings(){
+    document.getElementById('volume-slider').value=Config.get('volume')*100;
+    document.getElementById('volume-label').textContent=Math.round(Config.get('volume')*100)+'%';
+    document.getElementById('font-slider').value=Config.get('fontScale')*100;
+    document.getElementById('font-label').textContent=Math.round(Config.get('fontScale')*100)+'%';
+    document.getElementById('lang-select').value=Config.get('lang');
+    document.getElementById('reminder-switch').checked=Config.get('reminderOn');
+    document.getElementById('clicker-best')?.textContent&&(document.getElementById('clicker-best').textContent=Config.get('bestCPS').toFixed(1));
+    // 主题
+    const tc=document.getElementById('theme-chips');
+    [['dark','🌙 深色'],['light','☀️ 浅色'],['auto','🌗 自动']].forEach(([v,n])=>{
+      const b=document.createElement('button');
+      b.className='chip'+(Config.get('theme')===v?' active':'');
+      b.textContent=n;
+      b.onclick=()=>{
+        this.applyTheme(v);
+        tc.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
+        b.classList.add('active');
+      };
+      tc.appendChild(b);
+    });
+    // 动态背景
+    const bc=document.getElementById('bg-chips');
+    [['stars','🌌 星空'],['ocean','🌊 海浪'],['forest','🌲 森林']].forEach(([v,n])=>{
+      const b=document.createElement('button');
+      b.className='chip'+(Config.get('bgAnim')===v?' active':'');
+      b.textContent=n;
+      b.onclick=()=>{
+        Config.set('bgAnim',v); BGFX.setMode(v);
+        bc.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
+        b.classList.add('active');
+      };
+      bc.appendChild(b);
+    });
+    // 渐变
+    const gc=document.getElementById('grad-chips');
+    Object.entries(GRADIENTS).forEach(([v,g])=>{
+      const b=document.createElement('button');
+      b.className='chip'+(Config.get('gradient')===v?' active':'');
+      b.textContent=g.name;
+      b.onclick=()=>{
+        this.applyGradient(v);
+        gc.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
+        b.classList.add('active');
+      };
+      gc.appendChild(b);
+    });
+    this.applyGradient(Config.get('gradient'));
+    // 快捷键列表
+    const hk=document.getElementById('hotkey-list');
+    const defs=[['release','释放情绪'],['meditate','开始/结束冥想'],['pomo','番茄钟开始/暂停'],['journal','打开日志页']];
+    hk.innerHTML=defs.map(([k,label])=>`
+      <div class="hotkey-row">
+        <span class="sr-label">${label}</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="hotkey-key" id="hk-${k}">${Config.get('hotkeys')[k]}</span>
+          <button class="btn btn-secondary btn-sm" onclick="App.captureHotkey('${k}')">修改</button>
+        </div>
+      </div>`).join('');
+    document.getElementById('release-hotkey-hint').textContent='快捷键: '+Config.get('hotkeys').release;
+  },
+  renderSettings(){
+    // 音效
+    const sg=document.getElementById('sound-grid');
+    sg.innerHTML='';
+    Object.entries(SOUNDS).forEach(([id,info])=>{
+      const unlocked=Config.get('unlockedSounds').includes(id);
+      const active=Config.get('sound')===id;
+      const item=document.createElement('button');
+      item.className=`sound-item ${active?'active':''} ${!unlocked?'locked':''}`;
+      item.innerHTML=`${info.name}${!unlocked?` 🔒<div style="font-size:10px;color:var(--gold);margin-top:2px">⚡${info.cost}</div>`:''}`;
+      item.onclick=()=>{
+        if(!unlocked){
+          if(info.cost&&this.spendEnergy(info.cost)){
+            const l=Config.get('unlockedSounds'); l.push(id); Config.set('unlockedSounds',l);
+            showToast(`🔓 已解锁「${info.name}」`,'#FFD700');
+            this.renderSettings();
+          } else if(info.cost) showToast(`🔒 需要 ⚡${info.cost} 解锁`,'#FF8E53');
+          return;
+        }
+        Config.set('sound',id); SoundEngine.play(id);
+        this.renderSettings();
+        showToast(`🔊 已切换至「${info.name}」`);
+      };
+      sg.appendChild(item);
+    });
+    // 皮肤
+    const skg=document.getElementById('skin-grid');
+    skg.innerHTML='';
+    Object.entries(SKINS).forEach(([id,info])=>{
+      const unlocked=Config.get('unlockedSkins').includes(id);
+      const active=Config.get('skin')===id;
+      const item=document.createElement('button');
+      item.className=`skin-item ${active?'active':''} ${!unlocked?'locked':''}`;
+      item.innerHTML=`
+        <div class="skin-dot" style="background:${info.accent};color:${info.accent}"></div>
+        <div class="skin-name">${info.name}${active?' ✓':''}</div>
+        ${!unlocked?`<div class="skin-lock">🔒</div><div class="skin-cost">⚡${info.cost}</div>`:''}`;
+      item.onclick=()=>{
+        if(!unlocked){
+          if(info.cost&&this.spendEnergy(info.cost)){
+            const l=Config.get('unlockedSkins'); l.push(id); Config.set('unlockedSkins',l);
+            showToast(`🔓 已解锁「${info.name}」`,'#FFD700');
+            this.renderSettings();
+          } else if(info.cost) showToast(`🔒 需要 ⚡${info.cost} 解锁`,'#FF8E53');
+          return;
+        }
+        this.applySkin(id);
+        this.renderSettings();
+        if(this.currentPage==='stats') this.refreshStats();
+        showToast(`🎨 已切换至「${info.name}」`,info.accent);
+      };
+      skg.appendChild(item);
+    });
+  },
+  onVolumeChange(){
+    const v=document.getElementById('volume-slider').value/100;
+    document.getElementById('volume-label').textContent=Math.round(v*100)+'%';
+    Config.set('volume',v);
+    SoundEngine.play();
+  },
+  onFontChange(){
+    const v=document.getElementById('font-slider').value/100;
+    document.getElementById('font-label').textContent=Math.round(v*100)+'%';
+    Config.set('fontScale',v);
+    this.applyFontScale();
+  },
+  onLangChange(){
+    LANG=document.getElementById('lang-select').value;
+    Config.set('lang',LANG);
+    applyI18n();
+    this.buildNav();
+    this.showPage(this.currentPage);
+    showToast('🌐 '+T('save_ok'));
+  },
+  captureHotkey(k){
+    showToast('⌨️ 按下新的组合键…','#5b8cff');
+    this.hotkeyCapture=k;
+  },
+  setupHotkeys(){
+    document.addEventListener('keydown',e=>{
+      // 捕获模式
+      if(this.hotkeyCapture){
+        if(!(e.ctrlKey||e.altKey)) return;
+        if(['Control','Alt','Shift'].includes(e.key)) return;
+        e.preventDefault();
+        const combo=(e.ctrlKey?'Ctrl+':'')+(e.altKey?'Alt+':'')+(e.shiftKey?'Shift+':'')+e.key.toUpperCase();
+        const hks=Config.get('hotkeys');
+        hks[this.hotkeyCapture]=combo;
+        Config.set('hotkeys',hks);
+        const el=document.getElementById('hk-'+this.hotkeyCapture);
+        if(el) el.textContent=combo;
+        if(this.hotkeyCapture==='release') document.getElementById('release-hotkey-hint').textContent='快捷键: '+combo;
+        showToast(`⌨️ 已更新为 ${combo}`,'#00b894');
+        this.hotkeyCapture=null;
+        return;
+      }
+      const hks=Config.get('hotkeys');
+      const combo=(e.ctrlKey?'Ctrl+':'')+(e.altKey?'Alt+':'')+(e.shiftKey?'Shift+':'')+e.key.toUpperCase();
+      if(combo===hks.release){ e.preventDefault(); this.onRelease(); }
+      else if(combo===hks.meditate){ e.preventDefault(); this.showPage('meditate'); this.toggleMeditate(); }
+      else if(combo===hks.pomo){ e.preventDefault(); this.showPage('pomodoro'); this.togglePomo(); }
+      else if(combo===hks.journal){ e.preventDefault(); this.showPage('journal'); }
+    });
+  },
+
+  /* ---------- 提醒 ---------- */
+  setupReminder(){
+    if(Config.get('reminderOn')&&'Notification' in window&&Notification.permission==='granted'){
+      // 每天 21 点检查
+      const check=()=>{
+        const now=new Date();
+        if(now.getHours()===21&&Config.todayKey()!==localStorage.getItem('zcp_reminded')){
+          if(DB.getToday()===0) this.sendNotify('🧘 ZenClicker','今天还没释放情绪，花 1 分钟放下压力吧');
+          localStorage.setItem('zcp_reminded',Config.todayKey());
+        }
+      };
+      setInterval(check,60000);
+    }
+  },
+  onReminderToggle(){
+    const on=document.getElementById('reminder-switch').checked;
+    if(on&&'Notification' in window){
+      Notification.requestPermission().then(p=>{
+        if(p==='granted'){ Config.set('reminderOn',true); this.setupReminder(); showToast('🔔 提醒已开启，每晚 21 点检查'); }
+        else{ showToast('未获得通知权限','#FF8E53'); document.getElementById('reminder-switch').checked=false; }
+      });
+    }else{ Config.set('reminderOn',on); if(!on) showToast('🔕 提醒已关闭'); }
+  },
+  testNotify(){ this.sendNotify('🧘 ZenClicker','这是一条测试通知 · 每一次点击，都是一次放下'); },
+  sendNotify(title,body){
+    if('Notification' in window&&Notification.permission==='granted'){
+      try{ new Notification(title,{body}); }catch(e){}
+    }
+    showToast(title+'：'+body);
+  },
+
+  /* ---------- 手势 ---------- */
+  setupGestures(){
+    const main=document.getElementById('main-content');
+    let sx=0,sy=0;
+    main.addEventListener('touchstart',e=>{ sx=e.touches[0].clientX; sy=e.touches[0].clientY; },{passive:true});
+    main.addEventListener('touchend',e=>{
+      const dx=e.changedTouches[0].clientX-sx;
+      const dy=e.changedTouches[0].clientY-sy;
+      if(Math.abs(dx)>90&&Math.abs(dy)<50){
+        const order=NAV_ITEMS.map(n=>n.id);
+        const idx=order.indexOf(this.currentPage);
+        if(dx<0&&idx<order.length-1) this.showPage(order[idx+1]);
+        else if(dx>0&&idx>0) this.showPage(order[idx-1]);
+      }else if(dy>90&&Math.abs(dx)<40&&document.getElementById('page-container').scrollTop<=0){
+        // 下拉刷新
+        this.showPage(this.currentPage);
+        showToast('🔄 数据已刷新');
+        vibrate(15);
+      }
+    },{passive:true});
+  },
+
+  /* ---------- PWA ---------- */
+  setupPWA(){
+    // 内联 manifest
+    const manifest={
+      name:'ZenClicker Pro',short_name:'ZenClicker',
+      description:'数字疗愈工作台',display:'standalone',
+      background_color:'#0b0e1a',theme_color:'#0b0e1a',start_url:'.',
+      icons:[{src:this.svgIcon(),sizes:'192x192',type:'image/svg+xml'},
+             {src:this.svgIcon(),sizes:'512x512',type:'image/svg+xml'}]
+    };
+    const blob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
+    document.getElementById('manifest-link').href=URL.createObjectURL(blob);
+    window.addEventListener('beforeinstallprompt',e=>{
+      e.preventDefault(); this.deferredPrompt=e;
+    });
+    // 内联 service worker（仅 http(s) 下生效）
+    if('serviceWorker' in navigator&&location.protocol.startsWith('http')){
+      const swCode=`self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('fetch',e=>{});`;
+      const swBlob=new Blob([swCode],{type:'application/javascript'});
+      navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(()=>{});
+    }
+  },
+  svgIcon(){
+    return 'data:image/svg+xml,'+encodeURIComponent(
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="24" fill="#5b8cff"/><text x="50" y="66" font-size="52" text-anchor="middle">🧘</text></svg>`);
+  },
+  installPWA(){
+    if(this.deferredPrompt){
+      this.deferredPrompt.prompt();
+      this.deferredPrompt.userChoice.then(()=>{ this.deferredPrompt=null; });
+    }else{
+      showToast('💡 可通过浏览器菜单的「安装应用 / 添加到桌面」安装','#5b8cff');
+    }
+  },
+
+  /* ---------- 数据清除 ---------- */
+  clearAllData(){
+    openModal(`
+      <h3>🗑️ 清除所有数据</h3>
+      <p style="font-size:13px;color:var(--text-secondary);line-height:1.8">将删除所有释放记录、日志、冥想、番茄与成就进度，且无法恢复。建议先导出备份。</p>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px">
+        <button class="btn btn-secondary" onclick="closeModal()">取消</button>
+        <button class="btn btn-danger" onclick="App.doClearAll()">确认清除</button>
+      </div>`);
+  },
+  doClearAll(){
+    DB.clearAll();
+    localStorage.removeItem('zcp_achv');
+    Config.set('breathSessions',0); Config.set('checkinDates',[]);
+    Config.set('petXP',0); Config.set('maxCombo',0);
+    closeModal();
+    showToast('🗑️ 所有数据已清除','#FF6B6B');
+    this.showPage('dashboard');
+    this.updateTopbar();
+  },
+};
+
+/* ================================================================
+   SECTION: js-modal — 通用弹窗辅助
+   ================================================================ */
+function openModal(html){
+  document.getElementById('modal-body').innerHTML=html;
+  document.getElementById('modal-mask').classList.add('open');
+}
+function closeModal(){ document.getElementById('modal-mask').classList.remove('open'); }
+function dateStamp(){ return new Date().toISOString().slice(0,10); }
+function downloadBlob(blob,name){
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=name; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),3000);
+}
+
+/* ================================================================
+   SECTION: js-boot — 启动
+   ================================================================ */
+document.addEventListener('DOMContentLoaded',()=>App.init());
+</script>
+</body>
+</html>
